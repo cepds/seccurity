@@ -30,6 +30,10 @@ export function SidebarNav({
         <p className={styles.subtitle}>
           Hub local para inventario, abertura de apps, logs e futura integracao com IA.
         </p>
+        <div className={styles.brandMeta}>
+          <span className={styles.brandPill}>Windows 10 local-first</span>
+          <span className={styles.brandPill}>SQLite no main</span>
+        </div>
       </div>
 
       <nav className={styles.nav} aria-label="Navegacao principal">

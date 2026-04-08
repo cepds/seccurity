@@ -4,7 +4,9 @@
   padding: 20px;
   border: 1px solid rgba(130, 150, 182, 0.14);
   border-radius: 22px;
-  background: rgba(9, 14, 26, 0.94);
+  background:
+    linear-gradient(180deg, rgba(9, 14, 26, 0.96), rgba(7, 12, 23, 0.98)),
+    radial-gradient(circle at top right, rgba(86, 163, 255, 0.08), transparent 24%);
 }
 
 .header {
@@ -92,6 +94,27 @@
   margin: 0;
   font-family: var(--font-mono);
   font-size: 0.85rem;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.pathMeta {
+  display: grid;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(130, 150, 182, 0.12);
+}
+
+.pathHint {
+  color: var(--color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.66rem;
+}
+
+.pathCode {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }

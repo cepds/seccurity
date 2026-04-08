@@ -6,7 +6,10 @@
   border-right: 1px solid var(--color-line);
   background:
     linear-gradient(180deg, rgba(12, 18, 32, 0.94), rgba(8, 12, 23, 0.98)),
-    radial-gradient(circle at top left, rgba(76, 163, 255, 0.1), transparent 38%);
+    radial-gradient(circle at top left, rgba(76, 163, 255, 0.14), transparent 38%);
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
 }
 
 .brandBlock {
@@ -36,6 +39,20 @@
   line-height: 1.55;
 }
 
+.brandMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.brandPill {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(86, 163, 255, 0.12);
+  color: var(--color-accent-soft);
+  font-size: 0.72rem;
+}
+
 .nav {
   display: grid;
   gap: 10px;
@@ -47,7 +64,7 @@
   padding: 16px 16px 18px;
   border: 1px solid transparent;
   border-radius: 18px;
-  background: transparent;
+  background: rgba(11, 17, 29, 0.42);
   text-align: left;
   color: var(--color-text-muted);
   transition:
@@ -101,6 +118,8 @@
   .sidebar {
     border-right: 0;
     border-bottom: 1px solid var(--color-line);
+    position: static;
+    min-height: auto;
   }
 
   .subtitle {

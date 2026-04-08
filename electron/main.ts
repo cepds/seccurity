@@ -24,6 +24,7 @@ export function createWindow(options: MainProcessOptions): BrowserWindow {
     backgroundColor: "#08101b",
     autoHideMenuBar: true,
     title: "SECCURITY",
+    show: false,
     webPreferences: {
       preload: options.preloadPath,
       contextIsolation: true,
@@ -31,6 +32,21 @@ export function createWindow(options: MainProcessOptions): BrowserWindow {
       sandbox: false,
     },
   });
+
+  mainWindow.once("ready-to-show", () => {
+    mainWindow.show();
+  });
+
+  mainWindow.webContents.on(
+    "did-fail-load",
+    (_event, errorCode, errorDescription, validatedURL) => {
+      logEvent("error", "renderer", "Falha ao carregar o renderer principal.", {
+        errorCode,
+        errorDescription,
+        validatedURL,
+      });
+    }
+  );
 
   if (options.isDevelopment && options.devServerUrl) {
     void mainWindow.loadURL(options.devServerUrl);

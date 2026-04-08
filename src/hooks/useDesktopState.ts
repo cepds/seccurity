@@ -9,6 +9,7 @@ import type {
   TerminalSessionInfo,
   ToolId,
   UpdateStatus,
+  WorkspaceAppAssignment,
   WorkspaceDefinition,
 } from "../../shared/types";
 
@@ -21,6 +22,7 @@ export function useDesktopState() {
   const [savingToolId, setSavingToolId] = useState<ToolId | null>(null);
   const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
   const [updatingWorkspaceId, setUpdatingWorkspaceId] = useState<string | null>(null);
+  const [updatingWorkspaceAssignmentKey, setUpdatingWorkspaceAssignmentKey] = useState<string | null>(null);
   const [launchingWorkspaceId, setLaunchingWorkspaceId] = useState<string | null>(null);
   const [finishingSessionId, setFinishingSessionId] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -237,6 +239,34 @@ export function useDesktopState() {
     }
   }
 
+  async function updateWorkspaceAssignment(
+    workspaceId: string,
+    assignment: WorkspaceAppAssignment
+  ): Promise<WorkspaceDefinition | null> {
+    const assignmentKey = `${workspaceId}:${assignment.toolId}`;
+    setUpdatingWorkspaceAssignmentKey(assignmentKey);
+
+    try {
+      const workspace = await databaseClient.updateWorkspaceAssignment({
+        workspaceId,
+        toolId: assignment.toolId,
+        enabled: assignment.enabled,
+        launchOrder: assignment.launchOrder,
+        windowSlot: assignment.windowSlot,
+      });
+      setActionMessage(`Associacao de ${assignment.toolId} atualizada em ${workspace.name}.`);
+      await loadBootstrap(false);
+      return workspace;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Falha ao atualizar associacao do workspace.";
+      setErrorMessage(message);
+      return null;
+    } finally {
+      setUpdatingWorkspaceAssignmentKey(null);
+    }
+  }
+
   async function launchWorkspace(workspaceId: string): Promise<void> {
     setLaunchingWorkspaceId(workspaceId);
 
@@ -309,6 +339,7 @@ export function useDesktopState() {
     savingToolId,
     isCreatingWorkspace,
     updatingWorkspaceId,
+    updatingWorkspaceAssignmentKey,
     launchingWorkspaceId,
     finishingSessionId,
     actionMessage,
@@ -323,6 +354,7 @@ export function useDesktopState() {
     checkForUpdates,
     createWorkspace,
     renameWorkspace,
+    updateWorkspaceAssignment,
     launchWorkspace,
     finishWorkspaceSession,
     ensureTerminalSession,

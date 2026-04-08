@@ -1,6 +1,7 @@
 import { desktopClient } from "./desktopClient";
 import type {
   ToolSaveInput,
+  WorkspaceAssignmentUpdateInput,
   WorkspaceCreateInput,
   WorkspaceUpdateInput,
 } from "../../shared/types";
@@ -16,4 +17,6 @@ export const databaseClient = {
   listAlerts: () => desktopClient.listAlerts(),
   createWorkspace: (input: WorkspaceCreateInput) => desktopClient.createWorkspace(input),
   updateWorkspace: (input: WorkspaceUpdateInput) => desktopClient.updateWorkspace(input),
+  updateWorkspaceAssignment: (input: WorkspaceAssignmentUpdateInput) =>
+    desktopClient.updateWorkspaceAssignment(input),
 };

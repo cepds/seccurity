@@ -26,6 +26,7 @@ body {
     linear-gradient(180deg, #04070d 0%, #09111d 54%, #04070d 100%);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow: hidden;
 }
 
 body::before {
@@ -54,6 +55,19 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+input,
+textarea,
+select {
+  outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(86, 163, 255, 0.16);
 }
 
 button {

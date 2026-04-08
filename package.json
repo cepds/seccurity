@@ -5,10 +5,10 @@
   "private": true,
   "description": "SECCURITY is a Windows desktop workspace for local security operations, tooling, sessions, alerts, and evidence-driven workflows.",
   "author": "Carlos Silva <carlos.silva@playti.com.br>",
-  "homepage": "https://playti.com.br",
+  "homepage": "https://github.com/cepds/seccurity",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/playtecnologia/seccurity.git"
+    "url": "git+https://github.com/cepds/seccurity.git"
   },
   "main": "dist-electron/main.js",
   "scripts": {
@@ -77,7 +77,7 @@
     "productName": "SECCURITY",
     "buildVersion": "0.1.0.0",
     "artifactName": "${productName}-${version}-${arch}.${ext}",
-    "copyright": "Copyright © 2026 Carlos Silva / Play Tecnologia",
+    "copyright": "Copyright (c) 2026 Carlos Silva / Play Tecnologia",
     "directories": {
       "output": "release",
       "buildResources": "build"

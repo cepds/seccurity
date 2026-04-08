@@ -7,6 +7,7 @@ export const toolCatalog: ToolDefinition[] = [
     description: "Scanner de rede e inventario de hosts para verificacao local.",
     category: "network",
     executableNames: ["nmap.exe"],
+    registryDisplayNames: ["nmap"],
     commonPathTemplates: [
       "{programFiles}\\Nmap\\nmap.exe",
       "{programFilesX86}\\Nmap\\nmap.exe",
@@ -20,6 +21,7 @@ export const toolCatalog: ToolDefinition[] = [
     description: "Analise de trafego, captura local e inspecao de pacotes.",
     category: "traffic-analysis",
     executableNames: ["Wireshark.exe"],
+    registryDisplayNames: ["wireshark"],
     commonPathTemplates: [
       "{programFiles}\\Wireshark\\Wireshark.exe",
       "{programFilesX86}\\Wireshark\\Wireshark.exe",
@@ -32,6 +34,7 @@ export const toolCatalog: ToolDefinition[] = [
     description: "Proxy local para analise de aplicacoes web e testes autenticados.",
     category: "proxy",
     executableNames: ["ZAP.exe", "zap.exe"],
+    registryDisplayNames: ["owasp zap", "zed attack proxy", "zaproxy"],
     commonPathTemplates: [
       "{programFiles}\\OWASP\\Zed Attack Proxy\\ZAP.exe",
       "{programFiles}\\ZAP\\Zed Attack Proxy\\ZAP.exe",
@@ -45,6 +48,7 @@ export const toolCatalog: ToolDefinition[] = [
     description: "Inspecao de processos, handles e servicos em ambiente Windows.",
     category: "process-inspection",
     executableNames: ["ProcessHacker.exe"],
+    registryDisplayNames: ["process hacker"],
     commonPathTemplates: [
       "{programFiles}\\Process Hacker 2\\ProcessHacker.exe",
       "{programFiles}\\Process Hacker\\ProcessHacker.exe",
@@ -58,6 +62,7 @@ export const toolCatalog: ToolDefinition[] = [
     description: "Coleta e triagem local para fluxos de forense digital.",
     category: "forensics",
     executableNames: ["ForensiX Studio.exe", "ForensiXStudio.exe"],
+    registryDisplayNames: ["forensix"],
     commonPathTemplates: [
       "{programFiles}\\ForensiX Studio\\ForensiX Studio.exe",
       "{programFiles}\\ForensiX Studio\\ForensiXStudio.exe",
@@ -70,6 +75,7 @@ export const toolCatalog: ToolDefinition[] = [
     description: "Motor local para auditoria de hashes com aceleracao por GPU.",
     category: "password-audit",
     executableNames: ["hashcat.exe"],
+    registryDisplayNames: ["hashcat"],
     commonPathTemplates: [
       "{tools}\\hashcat\\hashcat.exe",
       "{userProfile}\\tools\\hashcat\\hashcat.exe",
@@ -83,6 +89,7 @@ export const toolCatalog: ToolDefinition[] = [
     description: "Auditoria local de credenciais e hashes para validacao interna.",
     category: "password-audit",
     executableNames: ["john.exe"],
+    registryDisplayNames: ["john the ripper", "john"],
     commonPathTemplates: [
       "{tools}\\john\\run\\john.exe",
       "{userProfile}\\tools\\john\\run\\john.exe",

@@ -2,7 +2,16 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { shell } from "electron";
-import { getDatabase } from "./database";
+import { clearRegistryCache, findRegistryInstallPaths } from "../../backend/registry";
+import {
+  getToolRowMap,
+  listToolRows,
+  markToolAsLaunched,
+  persistTools,
+  updateToolManualPath,
+  upsertTool,
+  type ToolRow,
+} from "../../backend/db/repositories/toolsRepo";
 import { createSession } from "./sessionService";
 import { logEvent } from "./logger";
 import { toolCatalog } from "../../shared/toolCatalog";
@@ -15,21 +24,9 @@ import type {
   ToolPathSource,
 } from "../../shared/types";
 
-interface ToolRow {
-  tool_id: ToolId;
-  name: string;
-  description: string;
-  category: DetectedTool["category"];
-  executable_name: string;
-  auto_detected_path: string | null;
-  manual_path: string | null;
-  resolved_path: string | null;
-  path_source: ToolPathSource;
-  version: string | null;
-  detected: number;
-  launchable: number;
-  last_checked_at: string | null;
-  last_launched_at: string | null;
+interface AutomaticDetectionResult {
+  source: Exclude<ToolPathSource, "manual" | "missing" | "auto">;
+  path: string;
 }
 
 const pathTokens = {
@@ -82,11 +79,6 @@ function findOnPath(executableNames: string[]): string[] {
   return unique(matches);
 }
 
-function resolveCandidatePaths(definition: ToolDefinition): string[] {
-  const expandedPaths = definition.commonPathTemplates.map(expandTemplate);
-  return unique([...findOnPath(definition.executableNames), ...expandedPaths]);
-}
-
 function readWindowsFileVersion(executablePath: string): string | null {
   const escapedPath = executablePath.replace(/'/g, "''");
   const command = `(Get-Item -LiteralPath '${escapedPath}').VersionInfo.ProductVersion`;
@@ -136,37 +128,6 @@ function readExecutableVersion(
   return combinedOutput ? extractVersionFromOutput(combinedOutput) : null;
 }
 
-function getStoredToolRows(): ToolRow[] {
-  const database = getDatabase();
-  return database
-    .prepare(
-      `
-        SELECT
-          tool_id,
-          name,
-          description,
-          category,
-          executable_name,
-          auto_detected_path,
-          manual_path,
-          resolved_path,
-          path_source,
-          version,
-          detected,
-          launchable,
-          last_checked_at,
-          last_launched_at
-        FROM tools
-        ORDER BY name ASC
-      `
-    )
-    .all() as ToolRow[];
-}
-
-function getStoredToolMap(): Map<ToolId, ToolRow> {
-  return new Map(getStoredToolRows().map((row) => [row.tool_id, row]));
-}
-
 function toDetectedTool(row: ToolRow): DetectedTool {
   return {
     id: row.tool_id,
@@ -205,84 +166,6 @@ function buildFallbackTool(definition: ToolDefinition): DetectedTool {
   };
 }
 
-function upsertTool(tool: DetectedTool): void {
-  const database = getDatabase();
-  const now = new Date().toISOString();
-
-  database
-    .prepare(
-      `
-        INSERT INTO tools (
-          tool_id,
-          name,
-          description,
-          category,
-          executable_name,
-          auto_detected_path,
-          manual_path,
-          resolved_path,
-          path_source,
-          version,
-          detected,
-          launchable,
-          last_checked_at,
-          last_launched_at,
-          created_at,
-          updated_at
-        )
-        VALUES (
-          @id,
-          @name,
-          @description,
-          @category,
-          @executableName,
-          @autoDetectedPath,
-          @manualPath,
-          @installPath,
-          @pathSource,
-          @version,
-          @detected,
-          @launchable,
-          @lastCheckedAt,
-          @lastLaunchedAt,
-          @createdAt,
-          @updatedAt
-        )
-        ON CONFLICT(tool_id) DO UPDATE SET
-          name = excluded.name,
-          description = excluded.description,
-          category = excluded.category,
-          executable_name = excluded.executable_name,
-          auto_detected_path = excluded.auto_detected_path,
-          manual_path = excluded.manual_path,
-          resolved_path = excluded.resolved_path,
-          path_source = excluded.path_source,
-          version = excluded.version,
-          detected = excluded.detected,
-          launchable = excluded.launchable,
-          last_checked_at = excluded.last_checked_at,
-          last_launched_at = excluded.last_launched_at,
-          updated_at = excluded.updated_at
-      `
-    )
-    .run({
-      ...tool,
-      detected: tool.detected ? 1 : 0,
-      launchable: tool.launchable ? 1 : 0,
-      createdAt: now,
-      updatedAt: now,
-    });
-}
-
-function persistTools(tools: DetectedTool[]): void {
-  const database = getDatabase();
-  const transaction = database.transaction((entries: DetectedTool[]) => {
-    entries.forEach(upsertTool);
-  });
-
-  transaction(tools);
-}
-
 function resolveManualPath(storedRow: ToolRow | undefined): string | null {
   if (!storedRow?.manual_path) {
     return null;
@@ -291,17 +174,40 @@ function resolveManualPath(storedRow: ToolRow | undefined): string | null {
   return fileExists(storedRow.manual_path) ? storedRow.manual_path : null;
 }
 
+function resolveAutomaticPath(definition: ToolDefinition): AutomaticDetectionResult | null {
+  const registryPath = findRegistryInstallPaths(definition).find(fileExists);
+  if (registryPath) {
+    return {
+      source: "registry",
+      path: registryPath,
+    };
+  }
+
+  const wherePath = findOnPath(definition.executableNames).find(fileExists);
+  if (wherePath) {
+    return {
+      source: "where",
+      path: wherePath,
+    };
+  }
+
+  const commonPath = definition.commonPathTemplates.map(expandTemplate).find(fileExists);
+  if (commonPath) {
+    return {
+      source: "common",
+      path: commonPath,
+    };
+  }
+
+  return null;
+}
+
 function detectTool(definition: ToolDefinition, storedRow: ToolRow | undefined): DetectedTool {
   const checkedAt = new Date().toISOString();
   const manualPath = storedRow?.manual_path ?? null;
   const validManualPath = resolveManualPath(storedRow);
-  const autoDetectedPath = resolveCandidatePaths(definition).find(fileExists) ?? null;
-  const installPath = validManualPath ?? autoDetectedPath;
-  const pathSource: ToolPathSource = validManualPath
-    ? "manual"
-    : autoDetectedPath
-      ? "auto"
-      : "missing";
+  const automaticPath = resolveAutomaticPath(definition);
+  const installPath = validManualPath ?? automaticPath?.path ?? null;
   const version =
     installPath === null
       ? null
@@ -315,10 +221,10 @@ function detectTool(definition: ToolDefinition, storedRow: ToolRow | undefined):
     category: definition.category,
     detected: installPath !== null,
     executableName: definition.executableNames[0],
-    autoDetectedPath,
+    autoDetectedPath: automaticPath?.path ?? null,
     manualPath,
     installPath,
-    pathSource,
+    pathSource: validManualPath ? "manual" : automaticPath?.source ?? "missing",
     version,
     launchable: installPath !== null,
     lastCheckedAt: checkedAt,
@@ -326,14 +232,19 @@ function detectTool(definition: ToolDefinition, storedRow: ToolRow | undefined):
   };
 }
 
+function getStoredToolMap(): Map<ToolId, ToolRow> {
+  return getToolRowMap();
+}
+
 export function syncToolRegistry(): void {
+  clearRegistryCache();
   const storedRows = getStoredToolMap();
-  const defaults = toolCatalog.map((definition) => detectTool(definition, storedRows.get(definition.id)));
-  persistTools(defaults);
+  const tools = toolCatalog.map((definition) => detectTool(definition, storedRows.get(definition.id)));
+  persistTools(tools);
 }
 
 export function getCachedTools(): DetectedTool[] {
-  const rows = getStoredToolRows();
+  const rows = listToolRows();
   if (rows.length === 0) {
     return toolCatalog.map(buildFallbackTool);
   }
@@ -342,6 +253,7 @@ export function getCachedTools(): DetectedTool[] {
 }
 
 export function scanInstalledTools(): DetectedTool[] {
+  clearRegistryCache();
   const storedRows = getStoredToolMap();
   const tools = toolCatalog.map((definition) => detectTool(definition, storedRows.get(definition.id)));
   persistTools(tools);
@@ -368,25 +280,11 @@ export function setManualToolExecutablePath(
     throw new Error(`Ferramenta desconhecida: ${toolId}`);
   }
 
-  const storedRows = getStoredToolMap();
   const nextManualPath = executablePath?.trim() || null;
-  const storedRow = storedRows.get(toolId);
+  updateToolManualPath(toolId, nextManualPath);
 
-  if (storedRow) {
-    const database = getDatabase();
-    database
-      .prepare(
-        `
-          UPDATE tools
-          SET manual_path = ?, updated_at = ?
-          WHERE tool_id = ?
-        `
-      )
-      .run(nextManualPath, new Date().toISOString(), toolId);
-  }
-
-  const refreshedRows = getStoredToolMap();
-  const tool = detectTool(definition, refreshedRows.get(toolId));
+  clearRegistryCache();
+  const tool = detectTool(definition, getStoredToolMap().get(toolId));
   upsertTool(tool);
 
   const message = nextManualPath
@@ -405,19 +303,6 @@ export function setManualToolExecutablePath(
     tool,
     message,
   };
-}
-
-function markToolAsLaunched(toolId: ToolId): void {
-  const database = getDatabase();
-  database
-    .prepare(
-      `
-        UPDATE tools
-        SET last_launched_at = ?, updated_at = ?
-        WHERE tool_id = ?
-      `
-    )
-    .run(new Date().toISOString(), new Date().toISOString(), toolId);
 }
 
 export async function launchTool(

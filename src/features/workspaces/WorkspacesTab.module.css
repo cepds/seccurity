@@ -1,6 +1,6 @@
 .workspacesTab {
   display: grid;
-  gap: 20px;
+  gap: 22px;
 }
 
 .header {
@@ -20,7 +20,7 @@
 
 .sectionTitle {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.42rem;
 }
 
 .createPanel,
@@ -30,7 +30,9 @@
   padding: 22px;
   border: 1px solid var(--color-line);
   border-radius: 24px;
-  background: rgba(8, 13, 24, 0.92);
+  background:
+    linear-gradient(180deg, rgba(8, 13, 24, 0.94), rgba(7, 11, 21, 0.98)),
+    radial-gradient(circle at top right, rgba(86, 163, 255, 0.08), transparent 28%);
 }
 
 .createForm,
@@ -59,6 +61,10 @@
   color: var(--color-text);
 }
 
+.button:hover:not(:disabled) {
+  border-color: rgba(130, 188, 255, 0.42);
+}
+
 .button:disabled {
   opacity: 0.58;
   cursor: wait;
@@ -78,6 +84,88 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.assignmentSection {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(130, 150, 182, 0.14);
+  border-radius: 20px;
+  background: rgba(10, 16, 29, 0.84);
+}
+
+.assignmentHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: end;
+}
+
+.assignmentTitle {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.assignmentHint {
+  color: var(--color-text-soft);
+  font-size: 0.88rem;
+}
+
+.assignmentList {
+  display: grid;
+  gap: 12px;
+}
+
+.assignmentCard {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(170px, 0.9fr) 120px 150px auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(130, 150, 182, 0.12);
+  background: rgba(13, 19, 33, 0.82);
+}
+
+.assignmentIdentity {
+  display: grid;
+  gap: 4px;
+}
+
+.assignmentId {
+  color: var(--color-text-soft);
+  font-size: 0.82rem;
+  font-family: var(--font-mono);
+}
+
+.checkboxField,
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.checkboxField {
+  grid-template-columns: 18px 1fr;
+  align-items: center;
+}
+
+.fieldLabel {
+  color: var(--color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.68rem;
+}
+
+.assignmentInput,
+.assignmentSelect {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid rgba(130, 150, 182, 0.18);
+  border-radius: 12px;
+  background: rgba(12, 18, 31, 0.92);
+  color: var(--color-text);
 }
 
 .metaPill {
@@ -104,4 +192,22 @@
   border-radius: 24px;
   color: var(--color-text-soft);
   text-align: center;
+}
+
+@media (max-width: 1180px) {
+  .assignmentCard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .header,
+  .assignmentHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .assignmentCard {
+    grid-template-columns: 1fr;
+  }
 }

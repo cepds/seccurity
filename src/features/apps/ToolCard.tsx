@@ -21,6 +21,8 @@ export function ToolCard({
   isLaunching,
   isSavingPath,
 }: ToolCardProps) {
+  const hasManualOverride = Boolean(tool.manualPath);
+
   return (
     <article className={styles.card}>
       <header className={styles.header}>
@@ -59,6 +61,18 @@ export function ToolCard({
       <div className={styles.pathBox}>
         <span className={styles.metaLabel}>Caminho atual</span>
         <p className={styles.pathValue}>{tool.installPath ?? "Nenhum executavel configurado."}</p>
+        {hasManualOverride ? (
+          <div className={styles.pathMeta}>
+            <span className={styles.pathHint}>Manual</span>
+            <code className={styles.pathCode}>{tool.manualPath}</code>
+          </div>
+        ) : null}
+        {tool.autoDetectedPath && tool.autoDetectedPath !== tool.installPath ? (
+          <div className={styles.pathMeta}>
+            <span className={styles.pathHint}>Auto detectado</span>
+            <code className={styles.pathCode}>{tool.autoDetectedPath}</code>
+          </div>
+        ) : null}
       </div>
 
       <div className={styles.actions}>

@@ -27,7 +27,7 @@ export type ToolCategory =
 
 export type LogLevel = "info" | "success" | "warn" | "error";
 export type EventSeverity = "info" | "low" | "medium" | "high" | "critical";
-export type ToolPathSource = "auto" | "manual" | "missing";
+export type ToolPathSource = "auto" | "manual" | "registry" | "where" | "common" | "missing";
 export type AppSessionStatus = "active" | "closed" | "failed";
 export type WorkspaceSessionStatus = "active" | "finished" | "failed";
 export type WorkspaceLayoutMode = "manual" | "grid" | "focus";
@@ -58,6 +58,7 @@ export interface ToolDefinition {
   category: ToolCategory;
   executableNames: string[];
   commonPathTemplates: string[];
+  registryDisplayNames?: string[];
   versionCommand?: string[];
 }
 

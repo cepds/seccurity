@@ -4,6 +4,7 @@ import type {
   ProviderKind,
   ToolCategory,
   ToolPathSource,
+  WorkspaceWindowSlot,
 } from "../../shared/types";
 
 const absoluteFormatter = new Intl.DateTimeFormat("pt-BR", {
@@ -65,6 +66,9 @@ export function formatToolPathSource(pathSource: ToolPathSource): string {
   const labels: Record<ToolPathSource, string> = {
     auto: "Auto",
     manual: "Manual",
+    registry: "Registry",
+    where: "PATH",
+    common: "Padrao",
     missing: "Nao definido",
   };
 
@@ -91,4 +95,17 @@ export function formatWorkspaceSessionStatus(status: WorkspaceSessionStatus): st
   };
 
   return labels[status];
+}
+
+export function formatWorkspaceWindowSlot(windowSlot: WorkspaceWindowSlot): string {
+  const labels: Record<WorkspaceWindowSlot, string> = {
+    manual: "Manual",
+    left: "Esquerda",
+    right: "Direita",
+    top: "Topo",
+    bottom: "Base",
+    center: "Centro",
+  };
+
+  return labels[windowSlot];
 }

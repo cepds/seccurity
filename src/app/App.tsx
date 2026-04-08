@@ -23,6 +23,7 @@ export default function App() {
     savingToolId,
     isCreatingWorkspace,
     updatingWorkspaceId,
+    updatingWorkspaceAssignmentKey,
     launchingWorkspaceId,
     finishingSessionId,
     actionMessage,
@@ -36,6 +37,7 @@ export default function App() {
     checkForUpdates,
     createWorkspace,
     renameWorkspace,
+    updateWorkspaceAssignment,
     launchWorkspace,
     finishWorkspaceSession,
     ensureTerminalSession,
@@ -45,13 +47,24 @@ export default function App() {
 
   const tabTitles: Record<NavigationTabId, string> = {
     overview: "Visao geral",
-    apps: "Aplicativos",
+    apps: "Biblioteca de apps",
     workspaces: "Workspaces",
     sessions: "Sessions",
     alerts: "Alerts",
     events: "Eventos",
     console: "Console",
     logs: "Logs",
+  };
+
+  const tabSubtitles: Record<NavigationTabId, string> = {
+    overview: "Saude do runtime, providers, estado operacional e disponibilidade de recursos.",
+    apps: "Inventario local com override manual, origem do path e launcher persistido.",
+    workspaces: "Colecoes de apps com ordem de abertura, slot de janela e execucao coordenada.",
+    sessions: "Historico operacional das execucoes de workspace com contexto, eventos e fechamento.",
+    alerts: "Alertas correlacionados a partir de eventos persistidos e sessoes recentes.",
+    events: "Timeline padronizada para trilha de auditoria, observabilidade e futuras regras.",
+    console: "Superficie integrada para PowerShell local com saida ao vivo e fluxo rapido.",
+    logs: "Registro persistido para diagnostico do shell e dos servicos locais.",
   };
 
   const isConsoleAvailable = snapshot?.overview.features.console.enabled ?? false;
@@ -68,8 +81,8 @@ export default function App() {
         },
         {
           id: "apps" as const,
-          label: "Apps",
-          summary: "Deteccao local, caminho, versao e launcher.",
+          label: "Biblioteca",
+          summary: "Colecao local de apps com busca, origem do path e launcher.",
         },
         {
           id: "workspaces" as const,
@@ -164,11 +177,15 @@ export default function App() {
             onRenameWorkspace={async (workspaceId, name) => {
               await renameWorkspace(workspaceId, name);
             }}
+            onUpdateWorkspaceAssignment={async (workspaceId, assignment) => {
+              await updateWorkspaceAssignment(workspaceId, assignment);
+            }}
             onLaunchWorkspace={async (workspaceId) => {
               await launchWorkspace(workspaceId);
             }}
             isCreatingWorkspace={isCreatingWorkspace}
             updatingWorkspaceId={updatingWorkspaceId}
+            updatingWorkspaceAssignmentKey={updatingWorkspaceAssignmentKey}
             launchingWorkspaceId={launchingWorkspaceId}
           />
         );
@@ -199,6 +216,7 @@ export default function App() {
     launchWorkspace,
     refreshTools,
     renameWorkspace,
+    updateWorkspaceAssignment,
     ensureTerminalSession,
     finishWorkspaceSession,
     finishingSessionId,
@@ -207,6 +225,7 @@ export default function App() {
     terminalOutput,
     terminalSession,
     updatingWorkspaceId,
+    updatingWorkspaceAssignmentKey,
     sendTerminalCommand,
     clearTerminalOutput,
   ]);
@@ -226,14 +245,18 @@ export default function App() {
 
         <main className={styles.workspace}>
           <header className={styles.topbar}>
-            <div>
+            <div className={styles.topbarCopy}>
               <p className={styles.topbarLabel}>Operational Surface</p>
               <h2 className={styles.topbarTitle}>{tabTitles[effectiveActiveTab]}</h2>
+              <p className={styles.topbarSubtitle}>{tabSubtitles[effectiveActiveTab]}</p>
             </div>
 
             <div className={styles.statusRail}>
               {snapshot ? (
                 <>
+                  <span className={`${styles.statusPill} ${styles.statusPillAccent}`}>
+                    {snapshot.overview.runtimeMode}
+                  </span>
                   <span className={styles.statusPill}>
                     {snapshot.overview.installedToolCount} apps detectados
                   </span>

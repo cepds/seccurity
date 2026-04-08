@@ -13,6 +13,11 @@ export function OverviewTab({
   onCheckUpdates,
   isCheckingUpdates,
 }: OverviewTabProps) {
+  const readinessRatio =
+    overview.totalToolCount === 0
+      ? "0%"
+      : `${Math.round((overview.installedToolCount / overview.totalToolCount) * 100)}%`;
+
   return (
     <div className={styles.overview}>
       <section className={styles.summaryBand}>
@@ -29,16 +34,41 @@ export function OverviewTab({
             <strong className={styles.metricValue}>
               {overview.installedToolCount}/{overview.totalToolCount}
             </strong>
+            <span className={styles.metricFootnote}>{readinessRatio} de prontidao</span>
           </div>
           <div>
             <span className={styles.metricLabel}>Ultima varredura</span>
             <strong className={styles.metricValue}>{formatRelativeMinutes(overview.lastScanAt)}</strong>
+            <span className={styles.metricFootnote}>Inventario local em SQLite</span>
           </div>
           <div>
             <span className={styles.metricLabel}>Alertas</span>
             <strong className={styles.metricValue}>{overview.alertCount}</strong>
+            <span className={styles.metricFootnote}>
+              {overview.activeSessionCount} sessoes ativas agora
+            </span>
           </div>
         </div>
+      </section>
+
+      <section className={styles.healthGrid}>
+        <article className={styles.healthCard}>
+          <span className={styles.sectionLabel}>Workspace health</span>
+          <strong className={styles.healthValue}>{overview.workspaceCount}</strong>
+          <span className={styles.healthHint}>Workspaces prontos para execucao</span>
+        </article>
+
+        <article className={styles.healthCard}>
+          <span className={styles.sectionLabel}>Events</span>
+          <strong className={styles.healthValue}>{overview.eventCount}</strong>
+          <span className={styles.healthHint}>Eventos persistidos para correlacao e auditoria</span>
+        </article>
+
+        <article className={styles.healthCard}>
+          <span className={styles.sectionLabel}>Providers</span>
+          <strong className={styles.healthValue}>{overview.providerCount}</strong>
+          <span className={styles.healthHint}>Camadas configuradas para IA aberta</span>
+        </article>
       </section>
 
       <section className={styles.grid}>

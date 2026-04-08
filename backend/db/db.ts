@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
+import { app } from "electron";
 import { resolveBackendPath } from "../paths";
 
 let database: Database.Database | null = null;
@@ -125,7 +126,7 @@ function applySchema(instance: Database.Database): void {
 }
 
 export function initDatabase(
-  databaseFilePath = path.join(process.cwd(), ".seccurity", "seccurity.db")
+  databaseFilePath = path.join(app.getPath("userData"), "seccurity.db")
 ): Database.Database {
   if (database) {
     return database;

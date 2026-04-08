@@ -1,4 +1,5 @@
 import {
+  countEvents as countEventsFromRepo,
   createEvent,
   getEventsByIds as getEventsByIdsFromRepo,
   filterEvents as filterEventsFromRepo,
@@ -118,7 +119,5 @@ export function getEventsByIds(ids: number[]): StandardizedEvent[] {
 }
 
 export function countEvents(): number {
-  const row = listEventsFromRepo(1_000_000);
-
-  return row.length;
+  return countEventsFromRepo();
 }

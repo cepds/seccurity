@@ -49,6 +49,36 @@
   font-size: clamp(1.3rem, 2vw, 2rem);
 }
 
+.metricFootnote {
+  display: block;
+  margin-top: 6px;
+  color: var(--color-text-soft);
+}
+
+.healthGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.healthCard {
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid rgba(130, 150, 182, 0.14);
+  border-radius: 22px;
+  background: rgba(9, 14, 26, 0.9);
+}
+
+.healthValue {
+  font-size: clamp(1.4rem, 2vw, 2.1rem);
+}
+
+.healthHint {
+  color: var(--color-text-soft);
+  line-height: 1.5;
+}
+
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.04fr);
@@ -175,6 +205,7 @@
 }
 
 @media (max-width: 1200px) {
+  .healthGrid,
   .summaryBand,
   .grid {
     grid-template-columns: 1fr;

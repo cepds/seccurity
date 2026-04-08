@@ -168,3 +168,9 @@ export function getEventsByIds(ids: number[]): EventRecord[] {
     limit: ids.length,
   });
 }
+
+export function countEvents(): number {
+  const database = getDatabase();
+  const row = database.prepare("SELECT COUNT(*) AS count FROM events").get() as { count: number };
+  return row.count;
+}
