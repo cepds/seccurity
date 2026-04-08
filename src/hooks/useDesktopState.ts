@@ -3,6 +3,7 @@ import { desktopClient } from "../services/desktopClient";
 import { databaseClient } from "../services/databaseClient";
 import type {
   DesktopBootstrap,
+  FinishWorkspaceSessionResult,
   LaunchToolResult,
   TerminalOutputChunk,
   TerminalSessionInfo,
@@ -20,6 +21,8 @@ export function useDesktopState() {
   const [savingToolId, setSavingToolId] = useState<ToolId | null>(null);
   const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
   const [updatingWorkspaceId, setUpdatingWorkspaceId] = useState<string | null>(null);
+  const [launchingWorkspaceId, setLaunchingWorkspaceId] = useState<string | null>(null);
+  const [finishingSessionId, setFinishingSessionId] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [terminalSession, setTerminalSession] = useState<TerminalSessionInfo | null>(null);
@@ -234,6 +237,40 @@ export function useDesktopState() {
     }
   }
 
+  async function launchWorkspace(workspaceId: string): Promise<void> {
+    setLaunchingWorkspaceId(workspaceId);
+
+    try {
+      const result = await desktopClient.launchWorkspace(workspaceId);
+      const alertSuffix =
+        typeof result.alertCount === "number" ? ` Correlacao gerou ${result.alertCount} alerta(s).` : "";
+      setActionMessage(`${result.message}${alertSuffix}`);
+      await loadBootstrap(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha ao executar workspace.";
+      setErrorMessage(message);
+    } finally {
+      setLaunchingWorkspaceId(null);
+    }
+  }
+
+  async function finishWorkspaceSession(sessionId: string): Promise<FinishWorkspaceSessionResult | null> {
+    setFinishingSessionId(sessionId);
+
+    try {
+      const result = await databaseClient.finishWorkspaceSession(sessionId);
+      setActionMessage(`${result.message} Correlacao gerou ${result.alertCount} alerta(s).`);
+      await loadBootstrap(false);
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha ao encerrar sessao.";
+      setErrorMessage(message);
+      return null;
+    } finally {
+      setFinishingSessionId(null);
+    }
+  }
+
   async function sendTerminalCommand(command: string): Promise<void> {
     const normalizedCommand = command.trim();
     if (!normalizedCommand) {
@@ -272,6 +309,8 @@ export function useDesktopState() {
     savingToolId,
     isCreatingWorkspace,
     updatingWorkspaceId,
+    launchingWorkspaceId,
+    finishingSessionId,
     actionMessage,
     errorMessage,
     terminalSession,
@@ -284,6 +323,8 @@ export function useDesktopState() {
     checkForUpdates,
     createWorkspace,
     renameWorkspace,
+    launchWorkspace,
+    finishWorkspaceSession,
     ensureTerminalSession,
     sendTerminalCommand,
     clearTerminalOutput,

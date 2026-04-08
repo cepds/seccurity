@@ -72,6 +72,17 @@ CREATE TABLE IF NOT EXISTS app_sessions (
   metadata_json TEXT
 );
 
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  workspace_id TEXT,
+  status TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  finished_at TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE SET NULL
+);
+
 CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   timestamp TEXT NOT NULL,
@@ -83,8 +94,23 @@ CREATE TABLE IF NOT EXISTS events (
   created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS alerts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  timestamp TEXT NOT NULL,
+  title TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  source TEXT NOT NULL,
+  related_event_ids_json TEXT NOT NULL,
+  data_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_tools_last_checked_at ON tools(last_checked_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_started_at ON app_sessions(started_at DESC);
 CREATE INDEX IF NOT EXISTS idx_sessions_workspace_id ON app_sessions(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_workspace_sessions_started_at ON sessions(started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_workspace_sessions_workspace_id ON sessions(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_events_source_type ON events(source, type);
+CREATE INDEX IF NOT EXISTS idx_alerts_timestamp ON alerts(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_alerts_severity ON alerts(severity, timestamp DESC);

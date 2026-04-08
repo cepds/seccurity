@@ -1,4 +1,5 @@
 import type {
+  WorkspaceSessionStatus,
   EventSeverity,
   ProviderKind,
   ToolCategory,
@@ -80,4 +81,14 @@ export function formatEventSeverity(severity: EventSeverity): string {
   };
 
   return labels[severity];
+}
+
+export function formatWorkspaceSessionStatus(status: WorkspaceSessionStatus): string {
+  const labels: Record<WorkspaceSessionStatus, string> = {
+    active: "Ativa",
+    finished: "Encerrada",
+    failed: "Falhou",
+  };
+
+  return labels[status];
 }

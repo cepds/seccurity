@@ -1,14 +1,17 @@
 import { toolCatalog } from "../../shared/toolCatalog";
 import type {
+  AlertRecord,
   DesktopApi,
   DesktopBootstrap,
   DetectedTool,
+  FinishWorkspaceSessionResult,
   TerminalExitEvent,
   TerminalOutputChunk,
   TerminalSessionInfo,
   ToolBrowseResult,
   ToolSaveInput,
   UpdateStatus,
+  WorkspaceSession,
   WorkspaceAssignmentUpdateInput,
   WorkspaceCreateInput,
   WorkspaceDefinition,
@@ -18,6 +21,7 @@ import type {
 let previewWorkspaceCounter = 1;
 let previewTerminalCounter = 1;
 let previewTerminalSession: TerminalSessionInfo | null = null;
+let previewWorkspaceSessionCounter = 1;
 
 const previewTerminalOutputListeners = new Set<(chunk: TerminalOutputChunk) => void>();
 const previewTerminalExitListeners = new Set<(event: TerminalExitEvent) => void>();
@@ -95,9 +99,44 @@ function buildPreviewWorkspaces(): WorkspaceDefinition[] {
   ];
 }
 
+function buildPreviewWorkspaceSessions(): WorkspaceSession[] {
+  return [
+    {
+      id: "preview-session-1",
+      name: "Primary Workspace @ preview",
+      workspaceId: "primary-workspace",
+      workspaceName: "Primary Workspace",
+      status: "active",
+      startedAt: new Date().toISOString(),
+      finishedAt: null,
+      createdAt: new Date().toISOString(),
+    },
+  ];
+}
+
+function buildPreviewAlerts(): AlertRecord[] {
+  return [
+    {
+      id: 1,
+      timestamp: new Date().toISOString(),
+      title: "Preview sem correlacao real",
+      severity: "low",
+      source: "preview.correlation",
+      relatedEventIds: [1],
+      data: {
+        sessionId: "preview-session-1",
+        note: "Abra via Electron para ativar correlacao persistida em SQLite.",
+      },
+      createdAt: new Date().toISOString(),
+    },
+  ];
+}
+
 function buildBrowserPreviewBootstrap(): DesktopBootstrap {
   const tools = buildPreviewTools();
   const workspaces = buildPreviewWorkspaces();
+  const workspaceSessions = buildPreviewWorkspaceSessions();
+  const alerts = buildPreviewAlerts();
   const updateStatus: UpdateStatus = {
     currentVersion: "1.0.0",
     latestVersion: "1.0.0",
@@ -116,9 +155,10 @@ function buildBrowserPreviewBootstrap(): DesktopBootstrap {
       installedToolCount: 0,
       totalToolCount: tools.length,
       providerCount: 2,
-      activeSessionCount: 0,
+      activeSessionCount: workspaceSessions.filter((session) => session.status === "active").length,
       workspaceCount: workspaces.length,
       eventCount: 1,
+      alertCount: alerts.length,
       lastScanAt: null,
       updateStatus,
       providers: [
@@ -154,7 +194,9 @@ function buildBrowserPreviewBootstrap(): DesktopBootstrap {
       },
     ],
     sessions: [],
+    workspaceSessions,
     workspaces,
+    alerts,
     events: [
       {
         id: 1,
@@ -209,6 +251,44 @@ const browserPreviewApi: DesktopApi = {
     executablePath: null,
   }),
   listWorkspaces: async () => previewBootstrap.workspaces,
+  listWorkspaceSessions: async () => previewBootstrap.workspaceSessions,
+  finishWorkspaceSession: async (sessionId: string): Promise<FinishWorkspaceSessionResult> => {
+    let updatedSession: WorkspaceSession | null = null;
+
+    previewBootstrap = {
+      ...previewBootstrap,
+      overview: {
+        ...previewBootstrap.overview,
+        activeSessionCount: Math.max(0, previewBootstrap.overview.activeSessionCount - 1),
+      },
+      workspaceSessions: previewBootstrap.workspaceSessions.map((session) => {
+        if (session.id !== sessionId) {
+          return session;
+        }
+
+        updatedSession = {
+          ...session,
+          status: "finished",
+          finishedAt: new Date().toISOString(),
+        };
+
+        return updatedSession;
+      }),
+    };
+
+    if (!updatedSession) {
+      throw new Error(`Sessao preview desconhecida: ${sessionId}`);
+    }
+
+    const finishedSession = updatedSession as WorkspaceSession;
+
+    return {
+      session: finishedSession,
+      alertCount: previewBootstrap.alerts.length,
+      message: `Sessao ${finishedSession.name} encerrada no preview.`,
+    };
+  },
+  listAlerts: async () => previewBootstrap.alerts,
   createWorkspace: async (input: WorkspaceCreateInput) => {
     const workspaceId = `preview-workspace-${previewWorkspaceCounter++}`;
     const workspace: WorkspaceDefinition = {
@@ -335,12 +415,38 @@ const browserPreviewApi: DesktopApi = {
   getLogs: async () => previewBootstrap.logs,
   getEvents: async () => previewBootstrap.events,
   checkForUpdates: async () => previewBootstrap.overview.updateStatus,
-  launchWorkspace: async (workspaceId) => ({
-    ok: false,
-    workspaceId,
-    launchedCount: 0,
-    message: "Workspace manager indisponivel no preview web. Abra o app pelo Electron.",
-  }),
+  launchWorkspace: async (workspaceId) => {
+    const workspace = previewBootstrap.workspaces.find((entry) => entry.id === workspaceId);
+    const sessionId = `preview-session-${previewWorkspaceSessionCounter++}`;
+    const session: WorkspaceSession = {
+      id: sessionId,
+      name: `${workspace?.name ?? "Workspace"} @ preview`,
+      workspaceId,
+      workspaceName: workspace?.name ?? null,
+      status: "active",
+      startedAt: new Date().toISOString(),
+      finishedAt: null,
+      createdAt: new Date().toISOString(),
+    };
+
+    previewBootstrap = {
+      ...previewBootstrap,
+      overview: {
+        ...previewBootstrap.overview,
+        activeSessionCount: previewBootstrap.overview.activeSessionCount + 1,
+      },
+      workspaceSessions: [session, ...previewBootstrap.workspaceSessions],
+    };
+
+    return {
+      ok: true,
+      workspaceId,
+      sessionId,
+      alertCount: previewBootstrap.alerts.length,
+      launchedCount: 0,
+      message: "Workspace executado em modo preview sem launcher real.",
+    };
+  },
   createTerminalSession: async (cwd?: string) => ensurePreviewTerminalSession(cwd),
   writeToTerminal: async (sessionId: string, data: string) => {
     const session = ensurePreviewTerminalSession();

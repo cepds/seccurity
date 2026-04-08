@@ -124,7 +124,7 @@ function applySchema(instance: Database.Database): void {
   instance.exec(readSchemaSql());
   migrateLegacyToolCache(instance);
   migrateLegacyEvents(instance);
-  instance.pragma("user_version = 3");
+  instance.pragma("user_version = 4");
 }
 
 export function initDatabase(databaseDirectory = path.join(process.cwd(), ".seccurity")): Database.Database {

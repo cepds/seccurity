@@ -423,7 +423,8 @@ function markToolAsLaunched(toolId: ToolId): void {
 export async function launchTool(
   toolId: ToolId,
   launchSource = "launcher",
-  workspaceId: string | null = null
+  workspaceId: string | null = null,
+  workspaceSessionId: string | null = null
 ): Promise<LaunchToolResult> {
   const definition = toolCatalog.find((tool) => tool.id === toolId);
 
@@ -451,12 +452,14 @@ export async function launchTool(
       status: "failed",
       metadata: {
         error: openError,
+        workspaceSessionId,
       },
     });
 
     logEvent("error", "launcher", "Falha ao abrir executavel detectado.", {
       toolId,
       workspaceId,
+      workspaceSessionId,
       installPath: detectedTool.installPath,
       error: openError,
       sessionId: failedSession.id,
@@ -479,12 +482,14 @@ export async function launchTool(
     status: "active",
     metadata: {
       pathSource: detectedTool.pathSource,
+      workspaceSessionId,
     },
   });
 
   logEvent("info", "launcher", "Executavel iniciado a partir do launcher local.", {
     toolId,
     workspaceId,
+    workspaceSessionId,
     installPath: detectedTool.installPath,
     sessionId: session.id,
   });

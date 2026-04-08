@@ -1,6 +1,8 @@
 import {
   createEvent,
+  getEventsByIds as getEventsByIdsFromRepo,
   filterEvents as filterEventsFromRepo,
+  listEventsBySessionId as listEventsBySessionIdFromRepo,
   listEvents as listEventsFromRepo,
 } from "../../backend/db/repositories/eventsRepo";
 import type {
@@ -96,13 +98,23 @@ export function getEvents(limit = 100): StandardizedEvent[] {
 }
 
 export function filterEvents(filters: {
+  ids?: number[];
   source?: string;
   type?: string;
   target?: string;
   severity?: EventSeverity;
+  sessionId?: string;
   limit?: number;
 }): StandardizedEvent[] {
   return filterEventsFromRepo(filters).map(toEvent);
+}
+
+export function getEventsBySessionId(sessionId: string, limit = 300): StandardizedEvent[] {
+  return listEventsBySessionIdFromRepo(sessionId, limit).map(toEvent);
+}
+
+export function getEventsByIds(ids: number[]): StandardizedEvent[] {
+  return getEventsByIdsFromRepo(ids).map(toEvent);
 }
 
 export function countEvents(): number {

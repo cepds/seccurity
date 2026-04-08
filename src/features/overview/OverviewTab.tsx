@@ -34,6 +34,10 @@ export function OverviewTab({
             <span className={styles.metricLabel}>Ultima varredura</span>
             <strong className={styles.metricValue}>{formatRelativeMinutes(overview.lastScanAt)}</strong>
           </div>
+          <div>
+            <span className={styles.metricLabel}>Alertas</span>
+            <strong className={styles.metricValue}>{overview.alertCount}</strong>
+          </div>
         </div>
       </section>
 
@@ -70,6 +74,10 @@ export function OverviewTab({
             <div>
               <dt>Update status</dt>
               <dd>{overview.updateStatus.note}</dd>
+            </div>
+            <div>
+              <dt>Sessoes ativas</dt>
+              <dd>{overview.activeSessionCount}</dd>
             </div>
             <div>
               <dt>Ultima checagem</dt>

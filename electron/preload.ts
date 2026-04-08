@@ -1,10 +1,13 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type {
+  AlertRecord,
   DesktopApi,
+  FinishWorkspaceSessionResult,
   TerminalExitEvent,
   TerminalOutputChunk,
   ToolId,
   ToolSaveInput,
+  WorkspaceSession,
   WorkspaceAssignmentUpdateInput,
   WorkspaceCreateInput,
   WorkspaceUpdateInput,
@@ -17,6 +20,10 @@ const desktopApi: DesktopApi = {
   saveTool: (input: ToolSaveInput) => ipcRenderer.invoke("tools:save", input),
   browseToolExecutablePath: (toolId: ToolId) => ipcRenderer.invoke("tools:browse-executable", toolId),
   listWorkspaces: () => ipcRenderer.invoke("workspaces:list"),
+  listWorkspaceSessions: (): Promise<WorkspaceSession[]> => ipcRenderer.invoke("sessions:list"),
+  finishWorkspaceSession: (sessionId: string): Promise<FinishWorkspaceSessionResult> =>
+    ipcRenderer.invoke("sessions:finish", sessionId),
+  listAlerts: (): Promise<AlertRecord[]> => ipcRenderer.invoke("alerts:list"),
   createWorkspace: (input: WorkspaceCreateInput) => ipcRenderer.invoke("workspaces:create", input),
   updateWorkspace: (input: WorkspaceUpdateInput) => ipcRenderer.invoke("workspaces:update", input),
   updateWorkspaceAssignment: (input: WorkspaceAssignmentUpdateInput) =>

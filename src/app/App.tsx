@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import { SidebarNav } from "../components/SidebarNav/SidebarNav";
+import { AlertsTab } from "../features/alerts/AlertsTab";
 import { OverviewTab } from "../features/overview/OverviewTab";
 import { AppsTab } from "../features/apps/AppsTab";
 import { ConsoleTab } from "../features/console/ConsoleTab";
 import { EventsTab } from "../features/events/EventsTab";
 import { LogsTab } from "../features/logs/LogsTab";
+import { SessionsTab } from "../features/sessions/SessionsTab";
 import { WorkspacesTab } from "../features/workspaces/WorkspacesTab";
 import { useDesktopState } from "../hooks/useDesktopState";
 import styles from "./App.module.css";
@@ -21,6 +23,8 @@ export default function App() {
     savingToolId,
     isCreatingWorkspace,
     updatingWorkspaceId,
+    launchingWorkspaceId,
+    finishingSessionId,
     actionMessage,
     errorMessage,
     terminalSession,
@@ -32,6 +36,8 @@ export default function App() {
     checkForUpdates,
     createWorkspace,
     renameWorkspace,
+    launchWorkspace,
+    finishWorkspaceSession,
     ensureTerminalSession,
     sendTerminalCommand,
     clearTerminalOutput,
@@ -41,6 +47,8 @@ export default function App() {
     overview: "Visao geral",
     apps: "Aplicativos",
     workspaces: "Workspaces",
+    sessions: "Sessions",
+    alerts: "Alerts",
     events: "Eventos",
     console: "Console",
     logs: "Logs",
@@ -62,6 +70,16 @@ export default function App() {
         id: "workspaces" as const,
         label: "Workspaces",
         summary: "Colecoes, criacao e edicao de nomes.",
+      },
+      {
+        id: "sessions" as const,
+        label: "Sessions",
+        summary: "Execucoes de workspace com contexto e correlacao.",
+      },
+      {
+        id: "alerts" as const,
+        label: "Alerts",
+        summary: "Alertas persistidos com eventos relacionados.",
       },
       {
         id: "events" as const,
@@ -102,6 +120,8 @@ export default function App() {
         );
       case "logs":
         return <LogsTab logs={snapshot.logs} />;
+      case "alerts":
+        return <AlertsTab alerts={snapshot.alerts} events={snapshot.events} />;
       case "console":
         return (
           <ConsoleTab
@@ -115,6 +135,18 @@ export default function App() {
         );
       case "events":
         return <EventsTab events={snapshot.events} />;
+      case "sessions":
+        return (
+          <SessionsTab
+            sessions={snapshot.workspaceSessions}
+            alerts={snapshot.alerts}
+            events={snapshot.events}
+            finishingSessionId={finishingSessionId}
+            onFinishSession={async (sessionId) => {
+              await finishWorkspaceSession(sessionId);
+            }}
+          />
+        );
       case "workspaces":
         return (
           <WorkspacesTab
@@ -125,8 +157,12 @@ export default function App() {
             onRenameWorkspace={async (workspaceId, name) => {
               await renameWorkspace(workspaceId, name);
             }}
+            onLaunchWorkspace={async (workspaceId) => {
+              await launchWorkspace(workspaceId);
+            }}
             isCreatingWorkspace={isCreatingWorkspace}
             updatingWorkspaceId={updatingWorkspaceId}
+            launchingWorkspaceId={launchingWorkspaceId}
           />
         );
       case "overview":
@@ -150,11 +186,15 @@ export default function App() {
     isCreatingWorkspace,
     isRefreshingTools,
     isStartingTerminal,
+    launchingWorkspaceId,
     launchTool,
     launchingToolId,
+    launchWorkspace,
     refreshTools,
     renameWorkspace,
     ensureTerminalSession,
+    finishWorkspaceSession,
+    finishingSessionId,
     savingToolId,
     snapshot,
     terminalOutput,
@@ -193,6 +233,10 @@ export default function App() {
                   <span className={styles.statusPill}>
                     {snapshot.overview.workspaceCount} workspaces
                   </span>
+                  <span className={styles.statusPill}>
+                    {snapshot.overview.activeSessionCount} sessoes ativas
+                  </span>
+                  <span className={styles.statusPill}>{snapshot.overview.alertCount} alertas</span>
                   <span className={styles.statusPill}>{snapshot.overview.eventCount} eventos</span>
                   <span className={styles.statusPill}>{snapshot.overview.providerCount} providers</span>
                 </>

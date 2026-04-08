@@ -7,16 +7,20 @@ interface WorkspacesTabProps {
   workspaces: WorkspaceDefinition[];
   onCreateWorkspace: (name: string) => Promise<void>;
   onRenameWorkspace: (workspaceId: string, name: string) => Promise<void>;
+  onLaunchWorkspace: (workspaceId: string) => Promise<void>;
   isCreatingWorkspace: boolean;
   updatingWorkspaceId: string | null;
+  launchingWorkspaceId: string | null;
 }
 
 export function WorkspacesTab({
   workspaces,
   onCreateWorkspace,
   onRenameWorkspace,
+  onLaunchWorkspace,
   isCreatingWorkspace,
   updatingWorkspaceId,
+  launchingWorkspaceId,
 }: WorkspacesTabProps) {
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [draftNames, setDraftNames] = useState<Record<string, string>>({});
@@ -106,6 +110,19 @@ export function WorkspacesTab({
               <div className={styles.workspaceMeta}>
                 <span className={styles.metaPill}>{workspace.assignments.length} apps associados</span>
                 <span className={styles.metaPill}>{enabledCount} habilitados</span>
+              </div>
+
+              <div className={styles.workspaceActions}>
+                <button
+                  type="button"
+                  className={styles.button}
+                  disabled={launchingWorkspaceId === workspace.id}
+                  onClick={() => {
+                    void onLaunchWorkspace(workspace.id);
+                  }}
+                >
+                  {launchingWorkspaceId === workspace.id ? "Executando..." : "Executar workspace"}
+                </button>
               </div>
 
               <span className={styles.timestamp}>

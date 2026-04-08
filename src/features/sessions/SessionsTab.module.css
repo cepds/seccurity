@@ -1,0 +1,134 @@
+.sessionsTab {
+  display: grid;
+  gap: 20px;
+}
+
+.header,
+.detailHeader,
+.sessionTopline,
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.sectionLabel,
+.subsectionLabel {
+  margin: 0 0 8px;
+  color: var(--color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+}
+
+.sectionTitle,
+.detailTitle {
+  margin: 0;
+}
+
+.count,
+.workspaceName,
+.emptyInline {
+  color: var(--color-text-soft);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.88fr) minmax(0, 1.12fr);
+  gap: 18px;
+}
+
+.sessionList,
+.detailPanel {
+  display: grid;
+  gap: 14px;
+}
+
+.sessionItem,
+.detailPanel {
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid var(--color-line);
+  background: rgba(8, 13, 24, 0.92);
+  text-align: left;
+}
+
+.sessionItemActive {
+  border-color: rgba(86, 163, 255, 0.4);
+  box-shadow: 0 0 0 1px rgba(86, 163, 255, 0.18) inset;
+}
+
+.statusBadge,
+.tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(86, 163, 255, 0.12);
+  color: #a9d4ff;
+  font-size: 0.74rem;
+}
+
+.definitionList {
+  display: grid;
+  gap: 12px;
+}
+
+.definitionList div {
+  padding-top: 12px;
+  border-top: 1px solid rgba(130, 150, 182, 0.12);
+}
+
+.definitionList dt {
+  margin-bottom: 4px;
+  color: var(--color-text-soft);
+}
+
+.definitionList dd {
+  margin: 0;
+}
+
+.relatedPanel {
+  display: grid;
+  gap: 18px;
+}
+
+.tagList,
+.eventList {
+  display: grid;
+  gap: 10px;
+}
+
+.eventItem {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(13, 19, 33, 0.82);
+}
+
+.primaryButton {
+  padding: 11px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--color-line-strong);
+  background: rgba(18, 33, 56, 0.92);
+  color: var(--color-text);
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.emptyState {
+  padding: 30px;
+  border: 1px dashed rgba(130, 150, 182, 0.22);
+  border-radius: 24px;
+  color: var(--color-text-soft);
+  text-align: center;
+}
+
+@media (max-width: 1080px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

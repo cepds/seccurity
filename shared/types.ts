@@ -1,4 +1,12 @@
-export type NavigationTabId = "overview" | "apps" | "workspaces" | "events" | "console" | "logs";
+export type NavigationTabId =
+  | "overview"
+  | "apps"
+  | "workspaces"
+  | "sessions"
+  | "alerts"
+  | "events"
+  | "console"
+  | "logs";
 
 export type ToolId =
   | "nmap"
@@ -21,6 +29,7 @@ export type LogLevel = "info" | "success" | "warn" | "error";
 export type EventSeverity = "info" | "low" | "medium" | "high" | "critical";
 export type ToolPathSource = "auto" | "manual" | "missing";
 export type AppSessionStatus = "active" | "closed" | "failed";
+export type WorkspaceSessionStatus = "active" | "finished" | "failed";
 export type WorkspaceLayoutMode = "manual" | "grid" | "focus";
 export type WorkspaceWindowSlot = "manual" | "left" | "right" | "top" | "bottom" | "center";
 
@@ -93,6 +102,28 @@ export interface AppSession {
   metadata: Record<string, unknown> | null;
 }
 
+export interface WorkspaceSession {
+  id: string;
+  name: string;
+  workspaceId: string | null;
+  workspaceName: string | null;
+  status: WorkspaceSessionStatus;
+  startedAt: string;
+  finishedAt: string | null;
+  createdAt: string;
+}
+
+export interface AlertRecord {
+  id: number;
+  timestamp: string;
+  title: string;
+  severity: EventSeverity;
+  source: string;
+  relatedEventIds: number[];
+  data: Record<string, unknown>;
+  createdAt: string;
+}
+
 export interface WorkspaceAppAssignment {
   workspaceId: string;
   toolId: ToolId;
@@ -141,6 +172,7 @@ export interface AppOverview {
   activeSessionCount: number;
   workspaceCount: number;
   eventCount: number;
+  alertCount: number;
   lastScanAt: string | null;
   updateStatus: UpdateStatus;
   providers: AiProviderConfig[];
@@ -151,7 +183,9 @@ export interface DesktopBootstrap {
   tools: DetectedTool[];
   logs: AppLogEntry[];
   sessions: AppSession[];
+  workspaceSessions: WorkspaceSession[];
   workspaces: WorkspaceDefinition[];
+  alerts: AlertRecord[];
   events: StandardizedEvent[];
 }
 
@@ -199,8 +233,23 @@ export interface WorkspaceAssignmentUpdateInput {
 export interface OpenWorkspaceResult {
   ok: boolean;
   workspaceId: string;
+  sessionId?: string;
+  alertCount?: number;
   launchedCount: number;
   message: string;
+}
+
+export interface FinishWorkspaceSessionResult {
+  session: WorkspaceSession;
+  alertCount: number;
+  message: string;
+}
+
+export interface SessionReportSnapshot {
+  session: WorkspaceSession;
+  alerts: AlertRecord[];
+  events: StandardizedEvent[];
+  generatedAt: string;
 }
 
 export interface TerminalSessionInfo {
@@ -231,6 +280,9 @@ export interface DesktopApi {
   saveTool: (input: ToolSaveInput) => Promise<SetToolExecutablePathResult>;
   browseToolExecutablePath: (toolId: ToolId) => Promise<ToolBrowseResult>;
   listWorkspaces: () => Promise<WorkspaceDefinition[]>;
+  listWorkspaceSessions: () => Promise<WorkspaceSession[]>;
+  finishWorkspaceSession: (sessionId: string) => Promise<FinishWorkspaceSessionResult>;
+  listAlerts: () => Promise<AlertRecord[]>;
   createWorkspace: (input: WorkspaceCreateInput) => Promise<WorkspaceDefinition>;
   updateWorkspace: (input: WorkspaceUpdateInput) => Promise<WorkspaceDefinition>;
   updateWorkspaceAssignment: (

@@ -1,0 +1,144 @@
+.alertsTab {
+  display: grid;
+  gap: 20px;
+}
+
+.header,
+.detailHeader,
+.alertTopline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.sectionLabel,
+.subsectionLabel {
+  margin: 0 0 8px;
+  color: var(--color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+}
+
+.sectionTitle,
+.detailTitle {
+  margin: 0;
+}
+
+.filterField {
+  display: grid;
+  gap: 8px;
+  color: var(--color-text-soft);
+}
+
+.select {
+  min-width: 180px;
+  padding: 12px 14px;
+  border: 1px solid rgba(130, 150, 182, 0.18);
+  border-radius: 14px;
+  background: rgba(12, 18, 31, 0.92);
+  color: var(--color-text);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.15fr);
+  gap: 18px;
+}
+
+.alertList,
+.detailPanel {
+  display: grid;
+  gap: 14px;
+}
+
+.alertItem,
+.detailPanel {
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid var(--color-line);
+  background: rgba(8, 13, 24, 0.92);
+  text-align: left;
+}
+
+.alertItemActive {
+  border-color: rgba(86, 163, 255, 0.4);
+  box-shadow: 0 0 0 1px rgba(86, 163, 255, 0.18) inset;
+}
+
+.severityBadge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 188, 93, 0.12);
+  color: #ffd18c;
+  font-size: 0.74rem;
+}
+
+.sourceLabel {
+  color: var(--color-text-soft);
+}
+
+.definitionList {
+  display: grid;
+  gap: 12px;
+}
+
+.definitionList div {
+  padding-top: 12px;
+  border-top: 1px solid rgba(130, 150, 182, 0.12);
+}
+
+.definitionList dt {
+  margin-bottom: 4px;
+  color: var(--color-text-soft);
+}
+
+.definitionList dd {
+  margin: 0;
+}
+
+.relatedPanel,
+.eventList {
+  display: grid;
+  gap: 16px;
+}
+
+.payload {
+  margin: 0;
+  overflow-x: auto;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(15, 22, 38, 0.92);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+
+.eventItem {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(13, 19, 33, 0.82);
+}
+
+.emptyState {
+  padding: 30px;
+  border: 1px dashed rgba(130, 150, 182, 0.22);
+  border-radius: 24px;
+  color: var(--color-text-soft);
+  text-align: center;
+}
+
+@media (max-width: 1080px) {
+  .header,
+  .detailHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

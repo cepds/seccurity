@@ -21,10 +21,12 @@ export interface CreateEventInput {
 }
 
 export interface EventFilters {
+  ids?: number[];
   source?: string;
   type?: string;
   target?: string;
   severity?: EventSeverity;
+  sessionId?: string;
   limit?: number;
 }
 
@@ -99,6 +101,12 @@ export function filterEvents(filters: EventFilters = {}): EventRecord[] {
   const conditions: string[] = [];
   const values: Array<string | number> = [];
 
+  if (filters.ids?.length) {
+    const placeholders = filters.ids.map(() => "?").join(", ");
+    conditions.push(`id IN (${placeholders})`);
+    values.push(...filters.ids);
+  }
+
   if (filters.source) {
     conditions.push("source = ?");
     values.push(filters.source);
@@ -119,6 +127,11 @@ export function filterEvents(filters: EventFilters = {}): EventRecord[] {
     values.push(filters.severity);
   }
 
+  if (filters.sessionId) {
+    conditions.push("json_extract(data_json, '$.sessionId') = ?");
+    values.push(filters.sessionId);
+  }
+
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const limit = filters.limit ?? 100;
   values.push(limit);
@@ -136,4 +149,22 @@ export function filterEvents(filters: EventFilters = {}): EventRecord[] {
     .all(...values) as EventRecord[];
 
   return rows.map(mapRow);
+}
+
+export function listEventsBySessionId(sessionId: string, limit = 300): EventRecord[] {
+  return filterEvents({
+    sessionId,
+    limit,
+  });
+}
+
+export function getEventsByIds(ids: number[]): EventRecord[] {
+  if (ids.length === 0) {
+    return [];
+  }
+
+  return filterEvents({
+    ids,
+    limit: ids.length,
+  });
 }

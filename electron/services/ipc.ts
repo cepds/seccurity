@@ -3,7 +3,7 @@ import { app, dialog, ipcMain } from "electron";
 import { getLogs, logEvent } from "./logger";
 import { countEvents, getEvents } from "./eventService";
 import { listProviders } from "./providerService";
-import { countActiveSessions, listSessions } from "./sessionService";
+import { listSessions } from "./sessionService";
 import {
   getCachedTools,
   scanInstalledTools,
@@ -18,6 +18,13 @@ import {
   updateWorkspaceAssignment,
   updateWorkspace,
 } from "./workspaceService";
+import {
+  countActiveWorkspaceSessions,
+  countAlerts,
+  finishSession,
+  listAlerts,
+  listWorkspaceSessions,
+} from "./workspaceSessionService";
 import {
   createTerminalSession,
   stopTerminalSession,
@@ -53,9 +60,10 @@ function buildOverview(): AppOverview {
     installedToolCount: tools.filter((tool) => tool.detected).length,
     totalToolCount: tools.length,
     providerCount: providers.length,
-    activeSessionCount: countActiveSessions(),
+    activeSessionCount: countActiveWorkspaceSessions(),
     workspaceCount: countWorkspaces(),
     eventCount: countEvents(),
+    alertCount: countAlerts(),
     lastScanAt: latestScan,
     updateStatus,
     providers,
@@ -68,7 +76,9 @@ function buildBootstrap(): DesktopBootstrap {
     tools: getCachedTools(),
     logs: getLogs(120),
     sessions: listSessions(80),
+    workspaceSessions: listWorkspaceSessions(120),
     workspaces: listWorkspaces(),
+    alerts: listAlerts(120),
     events: getEvents(120),
   };
 }
@@ -97,6 +107,9 @@ export function registerIpcHandlers(): void {
   });
 
   ipcMain.handle("workspaces:list", () => listWorkspaces());
+  ipcMain.handle("sessions:list", () => listWorkspaceSessions(120));
+  ipcMain.handle("sessions:finish", (_event, sessionId: string) => finishSession(sessionId));
+  ipcMain.handle("alerts:list", () => listAlerts(120));
 
   ipcMain.handle("workspaces:create", (_event, input: WorkspaceCreateInput) => {
     const workspace = createWorkspace(input);

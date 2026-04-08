@@ -74,6 +74,12 @@
   gap: 10px;
 }
 
+.workspaceActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .metaPill {
   padding: 8px 10px;
   border-radius: 999px;
