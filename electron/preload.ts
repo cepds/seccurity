@@ -5,6 +5,7 @@ const desktopApi: DesktopApi = {
   bootstrap: () => ipcRenderer.invoke("seccurity:bootstrap"),
   listTools: () => ipcRenderer.invoke("tools:list"),
   saveTool: (input: ToolSaveInput) => ipcRenderer.invoke("tools:save", input),
+  browseToolExecutablePath: (toolId: ToolId) => ipcRenderer.invoke("tools:browse-executable", toolId),
   listWorkspaces: () => ipcRenderer.invoke("workspaces:list"),
   createWorkspace: (input: WorkspaceCreateInput) => ipcRenderer.invoke("workspaces:create", input),
   scanTools: () => ipcRenderer.invoke("seccurity:scan-tools"),

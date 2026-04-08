@@ -172,6 +172,11 @@ export interface ToolSaveInput {
   executablePath: string | null;
 }
 
+export interface ToolBrowseResult {
+  canceled: boolean;
+  executablePath: string | null;
+}
+
 export interface WorkspaceCreateInput {
   name: string;
   description?: string;
@@ -188,6 +193,7 @@ export interface DesktopApi {
   bootstrap: () => Promise<DesktopBootstrap>;
   listTools: () => Promise<DetectedTool[]>;
   saveTool: (input: ToolSaveInput) => Promise<SetToolExecutablePathResult>;
+  browseToolExecutablePath: (toolId: ToolId) => Promise<ToolBrowseResult>;
   listWorkspaces: () => Promise<WorkspaceDefinition[]>;
   createWorkspace: (input: WorkspaceCreateInput) => Promise<WorkspaceDefinition>;
   scanTools: () => Promise<DetectedTool[]>;

@@ -1,5 +1,6 @@
 import { startTransition, useCallback, useEffect, useMemo, useState } from "react";
 import { desktopClient } from "../services/desktopClient";
+import { databaseClient } from "../services/databaseClient";
 import type {
   DesktopBootstrap,
   LaunchToolResult,
@@ -13,6 +14,7 @@ export function useDesktopState() {
   const [isRefreshingTools, setIsRefreshingTools] = useState(false);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [launchingToolId, setLaunchingToolId] = useState<ToolId | null>(null);
+  const [savingToolId, setSavingToolId] = useState<ToolId | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -76,6 +78,30 @@ export function useDesktopState() {
     }
   }
 
+  async function defineToolExecutablePath(toolId: ToolId): Promise<void> {
+    setSavingToolId(toolId);
+
+    try {
+      const browseResult = await databaseClient.browseToolExecutablePath(toolId);
+      if (browseResult.canceled || !browseResult.executablePath) {
+        return;
+      }
+
+      const result = await databaseClient.saveTool({
+        toolId,
+        executablePath: browseResult.executablePath,
+      });
+
+      setActionMessage(result.message);
+      await loadBootstrap(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha ao salvar caminho manual.";
+      setErrorMessage(message);
+    } finally {
+      setSavingToolId(null);
+    }
+  }
+
   async function checkForUpdates(): Promise<UpdateStatus | null> {
     setIsCheckingUpdates(true);
 
@@ -117,11 +143,13 @@ export function useDesktopState() {
     isRefreshingTools,
     isCheckingUpdates,
     launchingToolId,
+    savingToolId,
     actionMessage,
     errorMessage,
     installedCount,
     refreshTools,
     launchTool,
+    defineToolExecutablePath,
     checkForUpdates,
   };
 }

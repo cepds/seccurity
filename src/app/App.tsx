@@ -15,10 +15,12 @@ export default function App() {
     isRefreshingTools,
     isCheckingUpdates,
     launchingToolId,
+    savingToolId,
     actionMessage,
     errorMessage,
     refreshTools,
     launchTool,
+    defineToolExecutablePath,
     checkForUpdates,
   } = useDesktopState();
 
@@ -55,8 +57,10 @@ export default function App() {
             tools={snapshot.tools}
             onRefresh={refreshTools}
             onLaunch={launchTool}
+            onDefinePath={defineToolExecutablePath}
             isRefreshing={isRefreshingTools}
             launchingToolId={launchingToolId}
+            savingToolId={savingToolId}
           />
         );
       case "logs":
@@ -76,11 +80,13 @@ export default function App() {
   }, [
     activeTab,
     checkForUpdates,
+    defineToolExecutablePath,
     isCheckingUpdates,
     isRefreshingTools,
     launchTool,
     launchingToolId,
     refreshTools,
+    savingToolId,
     snapshot,
   ]);
 

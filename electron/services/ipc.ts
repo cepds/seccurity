@@ -1,5 +1,5 @@
 import os from "node:os";
-import { app, ipcMain } from "electron";
+import { app, dialog, ipcMain } from "electron";
 import { getLogs, logEvent } from "./logger";
 import { countEvents, getEvents } from "./eventService";
 import { listProviders } from "./providerService";
@@ -112,6 +112,22 @@ export function registerIpcHandlers(): void {
   ipcMain.handle("tools:save", (_event, input: ToolSaveInput) =>
     setManualToolExecutablePath(input.toolId, input.executablePath)
   );
+
+  ipcMain.handle("tools:browse-executable", async () => {
+    const result = await dialog.showOpenDialog({
+      title: "Selecionar executavel",
+      properties: ["openFile"],
+      filters: [
+        { name: "Executaveis", extensions: ["exe", "bat", "cmd"] },
+        { name: "Todos os arquivos", extensions: ["*"] },
+      ],
+    });
+
+    return {
+      canceled: result.canceled,
+      executablePath: result.canceled ? null : (result.filePaths[0] ?? null),
+    };
+  });
 
   ipcMain.handle("workspaces:list", () => listWorkspaces());
 

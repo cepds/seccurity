@@ -1,4 +1,4 @@
-import type { ProviderKind, ToolCategory } from "../../shared/types";
+import type { ProviderKind, ToolCategory, ToolPathSource } from "../../shared/types";
 
 const absoluteFormatter = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "short",
@@ -53,4 +53,14 @@ export function formatProviderKind(kind: ProviderKind): string {
   };
 
   return labels[kind];
+}
+
+export function formatToolPathSource(pathSource: ToolPathSource): string {
+  const labels: Record<ToolPathSource, string> = {
+    auto: "Auto",
+    manual: "Manual",
+    missing: "Nao definido",
+  };
+
+  return labels[pathSource];
 }

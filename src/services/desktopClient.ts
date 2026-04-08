@@ -3,6 +3,7 @@ import type {
   DesktopApi,
   DesktopBootstrap,
   DetectedTool,
+  ToolBrowseResult,
   ToolSaveInput,
   UpdateStatus,
   WorkspaceCreateInput,
@@ -159,6 +160,10 @@ const browserPreviewApi: DesktopApi = {
       message: "Preview web atualizado localmente.",
     };
   },
+  browseToolExecutablePath: async (): Promise<ToolBrowseResult> => ({
+    canceled: true,
+    executablePath: null,
+  }),
   listWorkspaces: async () => previewBootstrap.workspaces,
   createWorkspace: async (input: WorkspaceCreateInput) => {
     const workspaceId = `preview-workspace-${previewWorkspaceCounter++}`;
