@@ -1,8 +1,15 @@
 {
   "name": "seccurity",
+  "productName": "SECCURITY",
   "version": "0.1.0",
   "private": true,
-  "description": "SECCURITY desktop local para operacoes de seguranca no Windows.",
+  "description": "SECCURITY is a Windows desktop workspace for local security operations, tooling, sessions, alerts, and evidence-driven workflows.",
+  "author": "Carlos Silva <carlos.silva@playti.com.br>",
+  "homepage": "https://playti.com.br",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/playtecnologia/seccurity.git"
+  },
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "concurrently \"vite\" \"tsc -p tsconfig.electron.json --watch\" \"wait-on tcp:5173 dist-electron/main.js && electron .\"",
@@ -11,6 +18,7 @@
     "build": "npm run build:web && npm run build:electron",
     "dist": "npm run build && electron-builder",
     "dist:win": "npm run build && electron-builder --win",
+    "sign:local": "powershell -ExecutionPolicy Bypass -File scripts/sign-local.ps1",
     "dev:desktop": "npm run dev",
     "build:desktop": "npm run build",
     "start:desktop": "electron .",
@@ -67,8 +75,12 @@
   "build": {
     "appId": "com.seccurity.desktop",
     "productName": "SECCURITY",
+    "buildVersion": "0.1.0.0",
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "copyright": "Copyright © 2026 Carlos Silva / Play Tecnologia",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
       "dist/**/*",
@@ -82,6 +94,7 @@
       }
     ],
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         "nsis",
         "portable"
@@ -90,7 +103,13 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
     }
   }
 }

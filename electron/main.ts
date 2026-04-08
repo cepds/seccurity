@@ -44,6 +44,7 @@ export function createWindow(options: MainProcessOptions): BrowserWindow {
 
 export async function bootstrapMainProcess(options: MainProcessOptions): Promise<void> {
   app.setName("SECCURITY");
+  app.setAppUserModelId("com.seccurity.desktop");
   initDatabase(options.databasePath);
   syncProviderRegistry();
   syncToolRegistry();
