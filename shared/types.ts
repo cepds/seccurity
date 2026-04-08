@@ -187,6 +187,14 @@ export interface WorkspaceUpdateInput {
   name: string;
 }
 
+export interface WorkspaceAssignmentUpdateInput {
+  workspaceId: string;
+  toolId: ToolId;
+  enabled: boolean;
+  launchOrder: number;
+  windowSlot: WorkspaceWindowSlot;
+}
+
 export interface OpenWorkspaceResult {
   ok: boolean;
   workspaceId: string;
@@ -202,6 +210,9 @@ export interface DesktopApi {
   listWorkspaces: () => Promise<WorkspaceDefinition[]>;
   createWorkspace: (input: WorkspaceCreateInput) => Promise<WorkspaceDefinition>;
   updateWorkspace: (input: WorkspaceUpdateInput) => Promise<WorkspaceDefinition>;
+  updateWorkspaceAssignment: (
+    input: WorkspaceAssignmentUpdateInput
+  ) => Promise<WorkspaceDefinition>;
   scanTools: () => Promise<DetectedTool[]>;
   launchTool: (toolId: ToolId) => Promise<LaunchToolResult>;
   setToolExecutablePath: (toolId: ToolId, executablePath: string | null) => Promise<SetToolExecutablePathResult>;

@@ -3,6 +3,7 @@ import type {
   DesktopApi,
   ToolId,
   ToolSaveInput,
+  WorkspaceAssignmentUpdateInput,
   WorkspaceCreateInput,
   WorkspaceUpdateInput,
 } from "../shared/types";
@@ -15,6 +16,8 @@ const desktopApi: DesktopApi = {
   listWorkspaces: () => ipcRenderer.invoke("workspaces:list"),
   createWorkspace: (input: WorkspaceCreateInput) => ipcRenderer.invoke("workspaces:create", input),
   updateWorkspace: (input: WorkspaceUpdateInput) => ipcRenderer.invoke("workspaces:update", input),
+  updateWorkspaceAssignment: (input: WorkspaceAssignmentUpdateInput) =>
+    ipcRenderer.invoke("workspaces:update-assignment", input),
   scanTools: () => ipcRenderer.invoke("seccurity:scan-tools"),
   launchTool: (toolId: ToolId) => ipcRenderer.invoke("seccurity:launch-tool", toolId),
   setToolExecutablePath: (toolId: ToolId, executablePath: string | null) =>

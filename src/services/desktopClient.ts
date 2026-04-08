@@ -6,6 +6,7 @@ import type {
   ToolBrowseResult,
   ToolSaveInput,
   UpdateStatus,
+  WorkspaceAssignmentUpdateInput,
   WorkspaceCreateInput,
   WorkspaceDefinition,
   WorkspaceUpdateInput,
@@ -214,6 +215,43 @@ const browserPreviewApi: DesktopApi = {
 
     if (!updatedWorkspace) {
       throw new Error(`Workspace desconhecido no preview: ${input.workspaceId}`);
+    }
+
+    return updatedWorkspace;
+  },
+  updateWorkspaceAssignment: async (input: WorkspaceAssignmentUpdateInput) => {
+    let updatedWorkspace: WorkspaceDefinition | null = null;
+
+    previewBootstrap = {
+      ...previewBootstrap,
+      workspaces: previewBootstrap.workspaces.map((workspace) => {
+        if (workspace.id !== input.workspaceId) {
+          return workspace;
+        }
+
+        updatedWorkspace = {
+          ...workspace,
+          updatedAt: new Date().toISOString(),
+          assignments: workspace.assignments.map((assignment) =>
+            assignment.toolId === input.toolId
+              ? {
+                  ...assignment,
+                  enabled: input.enabled,
+                  launchOrder: input.launchOrder,
+                  windowSlot: input.windowSlot,
+                }
+              : assignment
+          ),
+        };
+
+        return updatedWorkspace;
+      }),
+    };
+
+    if (!updatedWorkspace) {
+      throw new Error(
+        `Workspace desconhecido no preview para assignment: ${input.workspaceId}`
+      );
     }
 
     return updatedWorkspace;

@@ -6,24 +6,25 @@ import { listProviders } from "./providerService";
 import { countActiveSessions, listSessions } from "./sessionService";
 import {
   getCachedTools,
-  launchTool,
   scanInstalledTools,
   setManualToolExecutablePath,
+  launchTool,
 } from "./toolService";
 import {
   countWorkspaces,
   createWorkspace,
-  getWorkspaceById,
+  launchWorkspace,
   listWorkspaces,
+  updateWorkspaceAssignment,
   updateWorkspace,
 } from "./workspaceService";
 import { getMockUpdateStatus } from "./updateService";
 import type {
   AppOverview,
   DesktopBootstrap,
-  OpenWorkspaceResult,
   ToolId,
   ToolSaveInput,
+  WorkspaceAssignmentUpdateInput,
   WorkspaceCreateInput,
   WorkspaceUpdateInput,
 } from "../../shared/types";
@@ -67,47 +68,6 @@ function buildBootstrap(): DesktopBootstrap {
   };
 }
 
-async function launchWorkspace(workspaceId: string): Promise<OpenWorkspaceResult> {
-  const workspace = getWorkspaceById(workspaceId);
-  if (!workspace) {
-    return {
-      ok: false,
-      workspaceId,
-      launchedCount: 0,
-      message: "Workspace nao encontrado.",
-    };
-  }
-
-  const enabledAssignments = workspace.assignments
-    .filter((assignment) => assignment.enabled)
-    .sort((left, right) => left.launchOrder - right.launchOrder);
-
-  let launchedCount = 0;
-  for (const assignment of enabledAssignments) {
-    const result = await launchTool(assignment.toolId, "workspace", workspace.id);
-    if (result.ok) {
-      launchedCount += 1;
-    }
-  }
-
-  const message =
-    launchedCount > 0
-      ? `Workspace ${workspace.name} iniciou ${launchedCount} app(s).`
-      : `Workspace ${workspace.name} nao possui apps habilitados ou detectados.`;
-
-  logEvent("info", "workspace", "Execucao do workspace concluida.", {
-    workspaceId: workspace.id,
-    launchedCount,
-  });
-
-  return {
-    ok: launchedCount > 0,
-    workspaceId: workspace.id,
-    launchedCount,
-    message,
-  };
-}
-
 export function registerIpcHandlers(): void {
   ipcMain.handle("tools:list", () => getCachedTools());
 
@@ -147,6 +107,18 @@ export function registerIpcHandlers(): void {
     logEvent("info", "workspace", "Workspace atualizado via IPC.", {
       workspaceId: workspace.id,
       name: workspace.name,
+    });
+    return workspace;
+  });
+
+  ipcMain.handle("workspaces:update-assignment", (_event, input: WorkspaceAssignmentUpdateInput) => {
+    const workspace = updateWorkspaceAssignment(input);
+    logEvent("info", "workspace.assignment", "Associacao de app salva via IPC.", {
+      workspaceId: input.workspaceId,
+      toolId: input.toolId,
+      enabled: input.enabled,
+      launchOrder: input.launchOrder,
+      windowSlot: input.windowSlot,
     });
     return workspace;
   });

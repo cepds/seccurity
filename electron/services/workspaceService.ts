@@ -1,8 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { getDatabase } from "./database";
+import { logEvent } from "./logger";
+import { launchTool } from "./toolService";
 import { toolCatalog } from "../../shared/toolCatalog";
 import type {
+  OpenWorkspaceResult,
   WorkspaceCreateInput,
+  WorkspaceAssignmentUpdateInput,
   WorkspaceUpdateInput,
   ToolId,
   WorkspaceAppAssignment,
@@ -229,5 +233,103 @@ export function updateWorkspace(input: WorkspaceUpdateInput): WorkspaceDefinitio
     ...workspace,
     name: normalizedName,
     updatedAt: timestamp,
+  };
+}
+
+export function updateWorkspaceAssignment(input: WorkspaceAssignmentUpdateInput): WorkspaceDefinition {
+  const database = getDatabase();
+  const workspace = getWorkspaceById(input.workspaceId);
+
+  if (!workspace) {
+    throw new Error(`Workspace nao encontrado: ${input.workspaceId}`);
+  }
+
+  const assignment = workspace.assignments.find((entry) => entry.toolId === input.toolId);
+  if (!assignment) {
+    throw new Error(`Associacao nao encontrada para ${input.toolId} em ${input.workspaceId}.`);
+  }
+
+  const timestamp = new Date().toISOString();
+  database
+    .prepare(
+      `
+        UPDATE workspace_apps
+        SET enabled = ?, launch_order = ?, window_slot = ?, updated_at = ?
+        WHERE workspace_id = ? AND tool_id = ?
+      `
+    )
+    .run(
+      input.enabled ? 1 : 0,
+      input.launchOrder,
+      input.windowSlot,
+      timestamp,
+      input.workspaceId,
+      input.toolId
+    );
+
+  database
+    .prepare(
+      `
+        UPDATE workspaces
+        SET updated_at = ?
+        WHERE id = ?
+      `
+    )
+    .run(timestamp, input.workspaceId);
+
+  return getWorkspaceById(input.workspaceId) ?? {
+    ...workspace,
+    updatedAt: timestamp,
+    assignments: workspace.assignments.map((entry) =>
+      entry.toolId === input.toolId
+        ? {
+            ...entry,
+            enabled: input.enabled,
+            launchOrder: input.launchOrder,
+            windowSlot: input.windowSlot,
+          }
+        : entry
+    ),
+  };
+}
+
+export async function launchWorkspace(workspaceId: string): Promise<OpenWorkspaceResult> {
+  const workspace = getWorkspaceById(workspaceId);
+  if (!workspace) {
+    return {
+      ok: false,
+      workspaceId,
+      launchedCount: 0,
+      message: "Workspace nao encontrado.",
+    };
+  }
+
+  const enabledAssignments = workspace.assignments
+    .filter((assignment) => assignment.enabled)
+    .sort((left, right) => left.launchOrder - right.launchOrder);
+
+  let launchedCount = 0;
+  for (const assignment of enabledAssignments) {
+    const result = await launchTool(assignment.toolId, "workspace", workspace.id);
+    if (result.ok) {
+      launchedCount += 1;
+    }
+  }
+
+  const message =
+    launchedCount > 0
+      ? `Workspace ${workspace.name} iniciou ${launchedCount} app(s).`
+      : `Workspace ${workspace.name} nao possui apps habilitados ou detectados.`;
+
+  logEvent("info", "workspace", "Execucao do workspace concluida.", {
+    workspaceId: workspace.id,
+    launchedCount,
+  });
+
+  return {
+    ok: launchedCount > 0,
+    workspaceId: workspace.id,
+    launchedCount,
+    message,
   };
 }
