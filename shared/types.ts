@@ -42,6 +42,15 @@ export type RuntimeMode = "desktop" | "browser-preview";
 export type UpdateState = "current" | "available" | "mocked";
 export type TerminalOutputStream = "stdout" | "stderr" | "system";
 
+export interface FeatureAvailability {
+  enabled: boolean;
+  reason: string | null;
+}
+
+export interface AppFeatureSet {
+  console: FeatureAvailability;
+}
+
 export interface ToolDefinition {
   id: ToolId;
   name: string;
@@ -176,6 +185,7 @@ export interface AppOverview {
   lastScanAt: string | null;
   updateStatus: UpdateStatus;
   providers: AiProviderConfig[];
+  features: AppFeatureSet;
 }
 
 export interface DesktopBootstrap {

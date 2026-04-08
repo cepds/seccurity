@@ -54,50 +54,57 @@ export default function App() {
     logs: "Logs",
   };
 
+  const isConsoleAvailable = snapshot?.overview.features.console.enabled ?? false;
+  const effectiveActiveTab: NavigationTabId =
+    activeTab === "console" && !isConsoleAvailable ? "overview" : activeTab;
+
   const sidebarItems = useMemo(
-    () => [
-      {
-        id: "overview" as const,
-        label: "Visao geral",
-        summary: "Runtime, providers e estado da sessao.",
-      },
-      {
-        id: "apps" as const,
-        label: "Apps",
-        summary: "Deteccao local, caminho, versao e launcher.",
-      },
-      {
-        id: "workspaces" as const,
-        label: "Workspaces",
-        summary: "Colecoes, criacao e edicao de nomes.",
-      },
-      {
-        id: "sessions" as const,
-        label: "Sessions",
-        summary: "Execucoes de workspace com contexto e correlacao.",
-      },
-      {
-        id: "alerts" as const,
-        label: "Alerts",
-        summary: "Alertas persistidos com eventos relacionados.",
-      },
-      {
-        id: "events" as const,
-        label: "Eventos",
-        summary: "Stream persistido com filtros por origem e severidade.",
-      },
-      {
-        id: "console" as const,
-        label: "Console",
-        summary: "Terminal PowerShell integrado com streaming ao vivo.",
-      },
-      {
-        id: "logs" as const,
-        label: "Logs",
-        summary: "Historico persistido em SQLite.",
-      },
-    ],
-    []
+    () =>
+      [
+        {
+          id: "overview" as const,
+          label: "Visao geral",
+          summary: "Runtime, providers e estado da sessao.",
+        },
+        {
+          id: "apps" as const,
+          label: "Apps",
+          summary: "Deteccao local, caminho, versao e launcher.",
+        },
+        {
+          id: "workspaces" as const,
+          label: "Workspaces",
+          summary: "Colecoes, criacao e edicao de nomes.",
+        },
+        {
+          id: "sessions" as const,
+          label: "Sessions",
+          summary: "Execucoes de workspace com contexto e correlacao.",
+        },
+        {
+          id: "alerts" as const,
+          label: "Alerts",
+          summary: "Alertas persistidos com eventos relacionados.",
+        },
+        {
+          id: "events" as const,
+          label: "Eventos",
+          summary: "Stream persistido com filtros por origem e severidade.",
+        },
+        isConsoleAvailable
+          ? {
+              id: "console" as const,
+              label: "Console",
+              summary: "Terminal PowerShell integrado com streaming ao vivo.",
+            }
+          : null,
+        {
+          id: "logs" as const,
+          label: "Logs",
+          summary: "Historico persistido em SQLite.",
+        },
+      ].filter((item): item is NonNullable<typeof item> => item !== null),
+    [isConsoleAvailable]
   );
 
   const activeView = useMemo(() => {
@@ -105,7 +112,7 @@ export default function App() {
       return null;
     }
 
-    switch (activeTab) {
+    switch (effectiveActiveTab) {
       case "apps":
         return (
           <AppsTab
@@ -178,10 +185,10 @@ export default function App() {
         );
     }
   }, [
-    activeTab,
     checkForUpdates,
     createWorkspace,
     defineToolExecutablePath,
+    effectiveActiveTab,
     isCheckingUpdates,
     isCreatingWorkspace,
     isRefreshingTools,
@@ -211,7 +218,7 @@ export default function App() {
       <div className={styles.layout}>
         <SidebarNav
           items={sidebarItems}
-          activeId={activeTab}
+          activeId={effectiveActiveTab}
           onSelect={setActiveTab}
           version={snapshot?.overview.currentVersion ?? "1.0.0"}
           runtimeLabel={snapshot?.overview.runtimeMode ?? "loading"}
@@ -221,7 +228,7 @@ export default function App() {
           <header className={styles.topbar}>
             <div>
               <p className={styles.topbarLabel}>Operational Surface</p>
-              <h2 className={styles.topbarTitle}>{tabTitles[activeTab]}</h2>
+              <h2 className={styles.topbarTitle}>{tabTitles[effectiveActiveTab]}</h2>
             </div>
 
             <div className={styles.statusRail}>

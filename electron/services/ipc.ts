@@ -27,6 +27,7 @@ import {
 } from "./workspaceSessionService";
 import {
   createTerminalSession,
+  getTerminalFeatureAvailability,
   stopTerminalSession,
   writeToTerminal,
 } from "./terminalService";
@@ -67,6 +68,9 @@ function buildOverview(): AppOverview {
     lastScanAt: latestScan,
     updateStatus,
     providers,
+    features: {
+      console: getTerminalFeatureAvailability(),
+    },
   };
 }
 

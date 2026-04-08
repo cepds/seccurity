@@ -80,6 +80,14 @@ export function OverviewTab({
               <dd>{overview.activeSessionCount}</dd>
             </div>
             <div>
+              <dt>Console</dt>
+              <dd>
+                {overview.features.console.enabled
+                  ? "Disponivel"
+                  : overview.features.console.reason ?? "Indisponivel"}
+              </dd>
+            </div>
+            <div>
               <dt>Ultima checagem</dt>
               <dd>{formatAbsoluteTimestamp(overview.updateStatus.lastCheckedAt)}</dd>
             </div>

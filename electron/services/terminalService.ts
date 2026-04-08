@@ -1,35 +1,102 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { webContents } from "electron";
-import type { IPty } from "node-pty";
 import { terminalChannels } from "./ipcChannels";
 import { logEvent } from "./logger";
 import type {
+  FeatureAvailability,
   TerminalExitEvent,
   TerminalOutputChunk,
   TerminalSessionInfo,
 } from "../../shared/types";
 
+interface PtyExitPayload {
+  exitCode: number;
+  signal?: number;
+}
+
+interface PtyProcess {
+  onData(listener: (data: string) => void): void;
+  onExit(listener: (payload: PtyExitPayload) => void): void;
+  write(data: string): void;
+  kill(): void;
+}
+
+interface NodePtyModule {
+  spawn(
+    file: string,
+    args: string[],
+    options: {
+      name: string;
+      cols: number;
+      rows: number;
+      cwd: string;
+      env: Record<string, string>;
+    }
+  ): PtyProcess;
+}
+
 interface TerminalSessionRecord {
   info: TerminalSessionInfo;
   ownerWebContentsId: number;
-  pty: IPty;
+  pty: PtyProcess;
 }
 
 const DEFAULT_COLS = 120;
 const DEFAULT_ROWS = 32;
+const ENABLE_CONSOLE = process.env.ENABLE_CONSOLE === "true";
+const CONSOLE_DISABLED_MESSAGE =
+  "Console integrado desativado. Defina ENABLE_CONSOLE=true para reativar o backend do terminal.";
+const runtimeRequire = createRequire(__filename);
 
 const terminalSessions = new Map<string, TerminalSessionRecord>();
-let nodePtyModulePromise: Promise<typeof import("node-pty")> | null = null;
+let nodePtyModule: NodePtyModule | null = null;
+let nodePtyLoadAttempted = false;
+let unavailableReason: string | null = ENABLE_CONSOLE ? null : CONSOLE_DISABLED_MESSAGE;
 
-async function getNodePtyModule(): Promise<typeof import("node-pty")> {
-  if (!nodePtyModulePromise) {
-    nodePtyModulePromise = import("node-pty");
+function loadNodePtyModule(): NodePtyModule | null {
+  if (!ENABLE_CONSOLE) {
+    return null;
   }
 
-  return nodePtyModulePromise;
+  if (nodePtyLoadAttempted) {
+    return nodePtyModule;
+  }
+
+  nodePtyLoadAttempted = true;
+
+  try {
+    nodePtyModule = runtimeRequire("node-pty") as NodePtyModule;
+    unavailableReason = null;
+  } catch (error) {
+    unavailableReason =
+      error instanceof Error
+        ? `Console integrado indisponivel: ${error.message}`
+        : "Console integrado indisponivel porque o modulo node-pty nao foi carregado.";
+  }
+
+  return nodePtyModule;
+}
+
+function getRequiredNodePtyModule(): NodePtyModule {
+  const module = loadNodePtyModule();
+  if (!module) {
+    throw new Error(unavailableReason ?? CONSOLE_DISABLED_MESSAGE);
+  }
+
+  return module;
+}
+
+export function getTerminalFeatureAvailability(): FeatureAvailability {
+  const module = loadNodePtyModule();
+
+  return {
+    enabled: Boolean(module),
+    reason: module ? null : unavailableReason,
+  };
 }
 
 function buildPtyEnvironment(): Record<string, string> {
@@ -146,7 +213,7 @@ export async function createTerminalSession(
     return existingSession.info;
   }
 
-  const nodePty = await getNodePtyModule();
+  const nodePty = getRequiredNodePtyModule();
   const shellPath = getPowerShellExecutable();
   const workingDirectory = getDefaultWorkingDirectory(cwd);
   const startedAt = new Date().toISOString();

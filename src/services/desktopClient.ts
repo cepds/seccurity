@@ -181,6 +181,12 @@ function buildBrowserPreviewBootstrap(): DesktopBootstrap {
           notes: "Disponivel para acoplamento futuro no modulo de providers.",
         },
       ],
+      features: {
+        console: {
+          enabled: false,
+          reason: "Console integrado indisponivel no preview web.",
+        },
+      },
     },
     tools,
     logs: [

@@ -18,7 +18,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "typecheck:electron": "tsc -p tsconfig.electron.json --noEmit",
-    "rebuild:native": "electron-rebuild -f -w better-sqlite3,node-pty",
+    "rebuild:native": "electron-rebuild -f -w better-sqlite3",
     "photos:prepare": "node scripts/prepare-photos.mjs",
     "cap:sync": "npm run build:web && npx cap sync",
     "cap:add:android": "npm run build:web && npx cap add android",
@@ -58,7 +58,6 @@
   "dependencies": {
     "better-sqlite3": "^12.8.0",
     "framer-motion": "^12.38.0",
-    "node-pty": "^1.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },
@@ -71,7 +70,11 @@
     "directories": {
       "output": "release"
     },
-    "files": ["dist/**/*", "dist-electron/**/*", "package.json"],
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
     "extraResources": [
       {
         "from": "backend",
@@ -79,12 +82,15 @@
       }
     ],
     "win": {
-      "target": ["nsis", "portable"]
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
-    },
-    "artifactName": "${productName}-${version}-${target}.${ext}"
+    }
   }
 }
