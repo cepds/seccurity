@@ -1,0 +1,123 @@
+.appShell {
+  position: relative;
+  overflow-x: clip;
+  min-height: 100vh;
+}
+
+.ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambient::before,
+.ambient::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(80px);
+  opacity: 0.4;
+}
+
+.ambient::before {
+  top: 4%;
+  left: -8%;
+  width: min(40vw, 520px);
+  height: min(40vw, 520px);
+  background: rgba(140, 39, 79, 0.34);
+}
+
+.ambient::after {
+  right: -6%;
+  bottom: 12%;
+  width: min(38vw, 480px);
+  height: min(38vw, 480px);
+  background: rgba(216, 178, 125, 0.18);
+}
+
+.contentLayer {
+  position: relative;
+  z-index: 1;
+  width: min(calc(100% - 28px), var(--max-width));
+  margin: 0 auto;
+  padding: 20px 0 88px;
+  transition: filter 280ms ease, transform 280ms ease;
+}
+
+.isLocked .contentLayer {
+  filter: blur(18px);
+  transform: scale(0.992);
+  pointer-events: none;
+  user-select: none;
+}
+
+.chapterRail {
+  position: sticky;
+  top: 18px;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.chapterRailInner {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  background: rgba(15, 10, 15, 0.6);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--color-shadow);
+  overflow-x: auto;
+}
+
+.chapterButton {
+  padding: 11px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-soft);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.chapterButton:hover {
+  color: var(--color-text);
+}
+
+.chapterButtonActive {
+  color: var(--color-ivory);
+  background: rgba(248, 239, 232, 0.08);
+  border-color: var(--color-line-strong);
+}
+
+.sectionStack {
+  display: grid;
+  gap: 22px;
+}
+
+.footerNote {
+  margin-top: 28px;
+  text-align: center;
+  color: var(--color-text-soft);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 720px) {
+  .contentLayer {
+    width: min(calc(100% - 18px), var(--max-width));
+    padding-top: 14px;
+  }
+
+  .chapterRail {
+    margin-bottom: 18px;
+  }
+
+  .chapterRailInner {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

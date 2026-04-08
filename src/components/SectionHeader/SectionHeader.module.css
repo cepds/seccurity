@@ -1,0 +1,28 @@
+.header {
+  display: grid;
+  gap: 10px;
+  max-width: 720px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--color-gold);
+  font-size: 0.84rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 5vw, 3.6rem);
+  line-height: 0.94;
+  color: var(--color-ivory);
+}
+
+.copy {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}

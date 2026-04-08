@@ -1,0 +1,35 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Sora:wght@600;700&display=swap");
+
+:root {
+  --color-bg: #050a12;
+  --color-bg-soft: #0a111d;
+  --color-surface: rgba(9, 14, 24, 0.9);
+  --color-surface-strong: rgba(12, 19, 32, 0.96);
+  --color-surface-light: rgba(124, 171, 255, 0.08);
+  --color-line: rgba(128, 154, 196, 0.16);
+  --color-line-strong: rgba(146, 177, 227, 0.28);
+  --color-text: #edf4ff;
+  --color-text-muted: rgba(237, 244, 255, 0.78);
+  --color-text-soft: rgba(237, 244, 255, 0.54);
+  --color-accent: #56a3ff;
+  --color-accent-soft: #9bc9ff;
+  --color-accent-secondary: #00d5bb;
+  --color-danger: #ff8e8e;
+  --color-shadow: 0 28px 70px rgba(0, 0, 0, 0.4);
+  --radius-sm: 14px;
+  --radius-md: 22px;
+  --radius-lg: 32px;
+  --radius-pill: 999px;
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 20px;
+  --space-5: 28px;
+  --space-6: 40px;
+  --space-7: 56px;
+  --space-8: 72px;
+  --font-display: "Sora", "Segoe UI", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", monospace;
+  --max-width: 1480px;
+}

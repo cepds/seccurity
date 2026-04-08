@@ -1,0 +1,35 @@
+.section {
+  display: grid;
+  gap: 18px;
+}
+
+.afterglow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 0 10px;
+}
+
+.message,
+.status {
+  margin: 0;
+  color: var(--color-text-soft);
+  line-height: 1.7;
+}
+
+.status {
+  justify-self: end;
+  text-align: right;
+}
+
+@media (max-width: 720px) {
+  .afterglow {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  .status {
+    justify-self: start;
+    text-align: left;
+  }
+}

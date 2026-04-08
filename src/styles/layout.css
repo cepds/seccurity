@@ -1,0 +1,25 @@
+.section-surface {
+  padding: 32px;
+  border: 1px solid var(--color-line);
+  border-radius: 36px;
+  background: rgba(16, 11, 16, 0.78);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--color-shadow);
+}
+
+.section-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.two-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.88fr);
+  gap: 18px;
+}
+
+@media (max-width: 980px) {
+  .two-column {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,46 @@
+.section {
+  display: grid;
+  gap: 26px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.item {
+  display: grid;
+  gap: 12px;
+  min-height: 220px;
+  padding: 22px;
+  border: 1px solid var(--color-line);
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(248, 239, 232, 0.05), rgba(248, 239, 232, 0.02));
+}
+
+.count {
+  color: var(--color-gold);
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--color-ivory);
+}
+
+.copy {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

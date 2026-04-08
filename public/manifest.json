@@ -1,0 +1,27 @@
+{
+  "name": "Carlos & Sandra",
+  "short_name": "C&S",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#140d12",
+  "theme_color": "#140d12",
+  "description": "APP AMOR cinematografico de Carlos e Sandra com quiz, galeria, memorias e cartas.",
+  "icons": [
+    {
+      "src": "/assets/generated/anime-app-icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/generated/anime-app-icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
