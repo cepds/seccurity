@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { SidebarNav } from "../components/SidebarNav/SidebarNav";
 import { OverviewTab } from "../features/overview/OverviewTab";
 import { AppsTab } from "../features/apps/AppsTab";
+import { EventsTab } from "../features/events/EventsTab";
 import { LogsTab } from "../features/logs/LogsTab";
 import { WorkspacesTab } from "../features/workspaces/WorkspacesTab";
 import { useDesktopState } from "../hooks/useDesktopState";
@@ -29,6 +30,14 @@ export default function App() {
     renameWorkspace,
   } = useDesktopState();
 
+  const tabTitles: Record<NavigationTabId, string> = {
+    overview: "Visao geral",
+    apps: "Aplicativos",
+    workspaces: "Workspaces",
+    events: "Eventos",
+    logs: "Logs",
+  };
+
   const sidebarItems = useMemo(
     () => [
       {
@@ -45,6 +54,11 @@ export default function App() {
         id: "workspaces" as const,
         label: "Workspaces",
         summary: "Colecoes, criacao e edicao de nomes.",
+      },
+      {
+        id: "events" as const,
+        label: "Eventos",
+        summary: "Stream persistido com filtros por origem e severidade.",
       },
       {
         id: "logs" as const,
@@ -75,6 +89,8 @@ export default function App() {
         );
       case "logs":
         return <LogsTab logs={snapshot.logs} />;
+      case "events":
+        return <EventsTab events={snapshot.events} />;
       case "workspaces":
         return (
           <WorkspacesTab
@@ -135,15 +151,7 @@ export default function App() {
           <header className={styles.topbar}>
             <div>
               <p className={styles.topbarLabel}>Operational Surface</p>
-              <h2 className={styles.topbarTitle}>
-                {activeTab === "overview"
-                  ? "Visao geral"
-                  : activeTab === "apps"
-                    ? "Aplicativos"
-                    : activeTab === "workspaces"
-                      ? "Workspaces"
-                    : "Logs"}
-              </h2>
+              <h2 className={styles.topbarTitle}>{tabTitles[activeTab]}</h2>
             </div>
 
             <div className={styles.statusRail}>
@@ -155,6 +163,7 @@ export default function App() {
                   <span className={styles.statusPill}>
                     {snapshot.overview.workspaceCount} workspaces
                   </span>
+                  <span className={styles.statusPill}>{snapshot.overview.eventCount} eventos</span>
                   <span className={styles.statusPill}>{snapshot.overview.providerCount} providers</span>
                 </>
               ) : null}

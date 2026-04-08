@@ -1,4 +1,4 @@
-export type NavigationTabId = "overview" | "apps" | "workspaces" | "logs";
+export type NavigationTabId = "overview" | "apps" | "workspaces" | "events" | "logs";
 
 export type ToolId =
   | "nmap"

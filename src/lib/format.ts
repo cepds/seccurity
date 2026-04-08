@@ -1,4 +1,9 @@
-import type { ProviderKind, ToolCategory, ToolPathSource } from "../../shared/types";
+import type {
+  EventSeverity,
+  ProviderKind,
+  ToolCategory,
+  ToolPathSource,
+} from "../../shared/types";
 
 const absoluteFormatter = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "short",
@@ -63,4 +68,16 @@ export function formatToolPathSource(pathSource: ToolPathSource): string {
   };
 
   return labels[pathSource];
+}
+
+export function formatEventSeverity(severity: EventSeverity): string {
+  const labels: Record<EventSeverity, string> = {
+    info: "Info",
+    low: "Baixa",
+    medium: "Media",
+    high: "Alta",
+    critical: "Critica",
+  };
+
+  return labels[severity];
 }

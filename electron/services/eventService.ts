@@ -1,4 +1,8 @@
-import { getDatabase } from "./database";
+import {
+  createEvent,
+  filterEvents as filterEventsFromRepo,
+  listEvents as listEventsFromRepo,
+} from "../../backend/db/repositories/eventsRepo";
 import type {
   EventSeverity,
   LogLevel,
@@ -77,50 +81,32 @@ export function buildEventFromLog(
 }
 
 export function recordStandardizedEvent(input: EventInput): number {
-  const database = getDatabase();
-  const timestamp = input.timestamp ?? new Date().toISOString();
-
-  const result = database
-    .prepare(
-      `
-        INSERT INTO events (timestamp, source, type, target, severity, data_json, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `
-    )
-    .run(
-      timestamp,
-      input.source,
-      input.type,
-      input.target,
-      input.severity,
-      JSON.stringify(input.data),
-      timestamp
-    );
-
-  return Number(result.lastInsertRowid);
+  return createEvent({
+    timestamp: input.timestamp,
+    source: input.source,
+    type: input.type,
+    target: input.target,
+    severity: input.severity,
+    data_json: JSON.stringify(input.data),
+  }).id;
 }
 
 export function getEvents(limit = 100): StandardizedEvent[] {
-  const database = getDatabase();
-  const rows = database
-    .prepare(
-      `
-        SELECT id, timestamp, source, type, target, severity, data_json
-        FROM events
-        ORDER BY datetime(timestamp) DESC, id DESC
-        LIMIT ?
-      `
-    )
-    .all(limit) as StandardizedEventRow[];
+  return listEventsFromRepo(limit).map(toEvent);
+}
 
-  return rows.map(toEvent);
+export function filterEvents(filters: {
+  source?: string;
+  type?: string;
+  target?: string;
+  severity?: EventSeverity;
+  limit?: number;
+}): StandardizedEvent[] {
+  return filterEventsFromRepo(filters).map(toEvent);
 }
 
 export function countEvents(): number {
-  const database = getDatabase();
-  const row = database
-    .prepare("SELECT COUNT(*) AS count FROM events")
-    .get() as { count: number };
+  const row = listEventsFromRepo(1_000_000);
 
-  return row.count;
+  return row.length;
 }
