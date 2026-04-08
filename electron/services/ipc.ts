@@ -18,6 +18,11 @@ import {
   updateWorkspaceAssignment,
   updateWorkspace,
 } from "./workspaceService";
+import {
+  createTerminalSession,
+  stopTerminalSession,
+  writeToTerminal,
+} from "./terminalService";
 import { getMockUpdateStatus } from "./updateService";
 import type {
   AppOverview,
@@ -148,6 +153,21 @@ export function registerIpcHandlers(): void {
   ipcMain.handle("seccurity:launch-workspace", (_event, workspaceId: string) =>
     launchWorkspace(workspaceId)
   );
+
+  ipcMain.handle("terminal:create-session", (event, cwd?: string) =>
+    createTerminalSession(event.sender.id, cwd)
+  );
+
+  ipcMain.handle(
+    "terminal:write",
+    (_event, payload: { sessionId: string; data: string }) => {
+      writeToTerminal(payload.sessionId, payload.data);
+    }
+  );
+
+  ipcMain.handle("terminal:stop", (_event, sessionId: string) => {
+    stopTerminalSession(sessionId);
+  });
 
   ipcMain.handle("seccurity:check-updates", () => {
     const updateStatus = getMockUpdateStatus(app.getVersion());

@@ -1,12 +1,15 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type {
   DesktopApi,
+  TerminalExitEvent,
+  TerminalOutputChunk,
   ToolId,
   ToolSaveInput,
   WorkspaceAssignmentUpdateInput,
   WorkspaceCreateInput,
   WorkspaceUpdateInput,
 } from "../shared/types";
+import { terminalChannels } from "./services/ipcChannels";
 
 const desktopApi: DesktopApi = {
   bootstrap: () => ipcRenderer.invoke("seccurity:bootstrap"),
@@ -27,6 +30,32 @@ const desktopApi: DesktopApi = {
   checkForUpdates: () => ipcRenderer.invoke("seccurity:check-updates"),
   launchWorkspace: (workspaceId: string) =>
     ipcRenderer.invoke("seccurity:launch-workspace", workspaceId),
+  createTerminalSession: (cwd?: string) => ipcRenderer.invoke("terminal:create-session", cwd),
+  writeToTerminal: (sessionId: string, data: string) =>
+    ipcRenderer.invoke("terminal:write", { sessionId, data }),
+  stopTerminalSession: (sessionId: string) => ipcRenderer.invoke("terminal:stop", sessionId),
+  onTerminalOutput: (listener: (chunk: TerminalOutputChunk) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, chunk: TerminalOutputChunk) => {
+      listener(chunk);
+    };
+
+    ipcRenderer.on(terminalChannels.output, handler);
+
+    return () => {
+      ipcRenderer.removeListener(terminalChannels.output, handler);
+    };
+  },
+  onTerminalExit: (listener: (event: TerminalExitEvent) => void) => {
+    const handler = (_ipcEvent: Electron.IpcRendererEvent, event: TerminalExitEvent) => {
+      listener(event);
+    };
+
+    ipcRenderer.on(terminalChannels.exit, handler);
+
+    return () => {
+      ipcRenderer.removeListener(terminalChannels.exit, handler);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld("seccurity", desktopApi);

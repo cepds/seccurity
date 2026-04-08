@@ -5,6 +5,7 @@ import { logEvent } from "./services/logger";
 import { syncProviderRegistry } from "./services/providerService";
 import { registerIpcHandlers } from "./services/ipc";
 import { syncToolRegistry } from "./services/toolService";
+import { disposeTerminalSessions } from "./services/terminalService";
 import { ensureDefaultWorkspace } from "./services/workspaceService";
 
 const isDevelopment = !app.isPackaged;
@@ -65,6 +66,8 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => {
+  disposeTerminalSessions();
+
   if (process.platform !== "darwin") {
     app.quit();
   }

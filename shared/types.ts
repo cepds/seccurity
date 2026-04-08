@@ -1,4 +1,4 @@
-export type NavigationTabId = "overview" | "apps" | "workspaces" | "events" | "logs";
+export type NavigationTabId = "overview" | "apps" | "workspaces" | "events" | "console" | "logs";
 
 export type ToolId =
   | "nmap"
@@ -31,6 +31,7 @@ export type ProviderStatus = "ready" | "configured" | "attention";
 export type RuntimeMode = "desktop" | "browser-preview";
 
 export type UpdateState = "current" | "available" | "mocked";
+export type TerminalOutputStream = "stdout" | "stderr" | "system";
 
 export interface ToolDefinition {
   id: ToolId;
@@ -202,6 +203,28 @@ export interface OpenWorkspaceResult {
   message: string;
 }
 
+export interface TerminalSessionInfo {
+  id: string;
+  shell: string;
+  cwd: string;
+  startedAt: string;
+  isActive: boolean;
+}
+
+export interface TerminalOutputChunk {
+  sessionId: string;
+  text: string;
+  stream: TerminalOutputStream;
+  timestamp: string;
+}
+
+export interface TerminalExitEvent {
+  sessionId: string;
+  exitCode: number;
+  signal: number | null;
+  timestamp: string;
+}
+
 export interface DesktopApi {
   bootstrap: () => Promise<DesktopBootstrap>;
   listTools: () => Promise<DetectedTool[]>;
@@ -220,4 +243,9 @@ export interface DesktopApi {
   getEvents: (limit?: number) => Promise<StandardizedEvent[]>;
   checkForUpdates: () => Promise<UpdateStatus>;
   launchWorkspace: (workspaceId: string) => Promise<OpenWorkspaceResult>;
+  createTerminalSession: (cwd?: string) => Promise<TerminalSessionInfo>;
+  writeToTerminal: (sessionId: string, data: string) => Promise<void>;
+  stopTerminalSession: (sessionId: string) => Promise<void>;
+  onTerminalOutput: (listener: (chunk: TerminalOutputChunk) => void) => () => void;
+  onTerminalExit: (listener: (event: TerminalExitEvent) => void) => () => void;
 }

@@ -3,6 +3,9 @@ import type {
   DesktopApi,
   DesktopBootstrap,
   DetectedTool,
+  TerminalExitEvent,
+  TerminalOutputChunk,
+  TerminalSessionInfo,
   ToolBrowseResult,
   ToolSaveInput,
   UpdateStatus,
@@ -13,6 +16,45 @@ import type {
 } from "../../shared/types";
 
 let previewWorkspaceCounter = 1;
+let previewTerminalCounter = 1;
+let previewTerminalSession: TerminalSessionInfo | null = null;
+
+const previewTerminalOutputListeners = new Set<(chunk: TerminalOutputChunk) => void>();
+const previewTerminalExitListeners = new Set<(event: TerminalExitEvent) => void>();
+
+function emitPreviewTerminalOutput(chunk: TerminalOutputChunk) {
+  previewTerminalOutputListeners.forEach((listener) => listener(chunk));
+}
+
+function emitPreviewTerminalExit(event: TerminalExitEvent) {
+  previewTerminalExitListeners.forEach((listener) => listener(event));
+}
+
+function ensurePreviewTerminalSession(cwd?: string): TerminalSessionInfo {
+  if (previewTerminalSession?.isActive) {
+    return previewTerminalSession;
+  }
+
+  previewTerminalSession = {
+    id: `preview-terminal-${previewTerminalCounter++}`,
+    shell: "PowerShell Preview",
+    cwd: cwd ?? "C:\\preview",
+    startedAt: new Date().toISOString(),
+    isActive: true,
+  };
+
+  queueMicrotask(() => {
+    emitPreviewTerminalOutput({
+      sessionId: previewTerminalSession!.id,
+      text:
+        "Windows PowerShell preview\r\nRenderer em modo navegador. Abra via Electron para terminal real.\r\nPS> ",
+      stream: "system",
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  return previewTerminalSession;
+}
 
 function buildPreviewTools(): DetectedTool[] {
   return toolCatalog.map((tool) => ({
@@ -299,6 +341,69 @@ const browserPreviewApi: DesktopApi = {
     launchedCount: 0,
     message: "Workspace manager indisponivel no preview web. Abra o app pelo Electron.",
   }),
+  createTerminalSession: async (cwd?: string) => ensurePreviewTerminalSession(cwd),
+  writeToTerminal: async (sessionId: string, data: string) => {
+    const session = ensurePreviewTerminalSession();
+    if (session.id !== sessionId) {
+      throw new Error("Sessao de terminal preview desconhecida.");
+    }
+
+    const submittedCommand = data.replace(/\r?\n/g, "").trim();
+    if (!submittedCommand) {
+      emitPreviewTerminalOutput({
+        sessionId,
+        text: "\r\nPS> ",
+        stream: "stdout",
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
+    emitPreviewTerminalOutput({
+      sessionId,
+      text: `${submittedCommand}\r\n`,
+      stream: "stdout",
+      timestamp: new Date().toISOString(),
+    });
+
+    emitPreviewTerminalOutput({
+      sessionId,
+      text: `Modo preview: comando "${submittedCommand}" enviado ao mock local.\r\nPS> `,
+      stream: "system",
+      timestamp: new Date().toISOString(),
+    });
+  },
+  stopTerminalSession: async (sessionId: string) => {
+    if (!previewTerminalSession || previewTerminalSession.id !== sessionId) {
+      return;
+    }
+
+    previewTerminalSession = {
+      ...previewTerminalSession,
+      isActive: false,
+    };
+
+    emitPreviewTerminalExit({
+      sessionId,
+      exitCode: 0,
+      signal: null,
+      timestamp: new Date().toISOString(),
+    });
+  },
+  onTerminalOutput: (listener) => {
+    previewTerminalOutputListeners.add(listener);
+
+    return () => {
+      previewTerminalOutputListeners.delete(listener);
+    };
+  },
+  onTerminalExit: (listener) => {
+    previewTerminalExitListeners.add(listener);
+
+    return () => {
+      previewTerminalExitListeners.delete(listener);
+    };
+  },
 };
 
 export const desktopClient: DesktopApi = window.seccurity ?? browserPreviewApi;

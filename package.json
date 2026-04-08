@@ -20,7 +20,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "typecheck:electron": "tsc -p electron/tsconfig.json --noEmit",
-    "rebuild:native": "electron-rebuild -f -w better-sqlite3",
+    "rebuild:native": "electron-rebuild -f -w better-sqlite3,node-pty",
     "photos:prepare": "node scripts/prepare-photos.mjs",
     "cap:sync": "npm run build && npx cap sync",
     "cap:add:android": "npm run build && npx cap add android",
@@ -59,6 +59,7 @@
   "dependencies": {
     "better-sqlite3": "^12.8.0",
     "framer-motion": "^12.38.0",
+    "node-pty": "^1.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

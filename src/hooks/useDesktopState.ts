@@ -1,9 +1,11 @@
-import { startTransition, useCallback, useEffect, useMemo, useState } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { desktopClient } from "../services/desktopClient";
 import { databaseClient } from "../services/databaseClient";
 import type {
   DesktopBootstrap,
   LaunchToolResult,
+  TerminalOutputChunk,
+  TerminalSessionInfo,
   ToolId,
   UpdateStatus,
   WorkspaceDefinition,
@@ -20,6 +22,14 @@ export function useDesktopState() {
   const [updatingWorkspaceId, setUpdatingWorkspaceId] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [terminalSession, setTerminalSession] = useState<TerminalSessionInfo | null>(null);
+  const [terminalOutput, setTerminalOutput] = useState<TerminalOutputChunk[]>([]);
+  const [isStartingTerminal, setIsStartingTerminal] = useState(false);
+  const terminalSessionRef = useRef<TerminalSessionInfo | null>(null);
+
+  useEffect(() => {
+    terminalSessionRef.current = terminalSession;
+  }, [terminalSession]);
 
   const loadBootstrap = useCallback(
     async (withSpinner = true) => {
@@ -48,6 +58,61 @@ export function useDesktopState() {
   useEffect(() => {
     void loadBootstrap(true);
   }, [loadBootstrap]);
+
+  const ensureTerminalSession = useCallback(async (): Promise<TerminalSessionInfo | null> => {
+    const existingSession = terminalSessionRef.current;
+    if (existingSession?.isActive) {
+      return existingSession;
+    }
+
+    setIsStartingTerminal(true);
+
+    try {
+      const session = await desktopClient.createTerminalSession();
+      startTransition(() => {
+        setTerminalSession(session);
+        setErrorMessage(null);
+      });
+      return session;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Falha ao iniciar o console PowerShell.";
+      setErrorMessage(message);
+      return null;
+    } finally {
+      setIsStartingTerminal(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const unsubscribeOutput = desktopClient.onTerminalOutput((chunk) => {
+      startTransition(() => {
+        setTerminalOutput((current) => {
+          const nextOutput = [...current, chunk];
+          return nextOutput.length > 500 ? nextOutput.slice(-500) : nextOutput;
+        });
+      });
+    });
+
+    const unsubscribeExit = desktopClient.onTerminalExit((event) => {
+      startTransition(() => {
+        setTerminalSession((current) =>
+          current?.id === event.sessionId
+            ? {
+                ...current,
+                isActive: false,
+              }
+            : current
+        );
+      });
+      setActionMessage(`Console encerrado com codigo ${event.exitCode}.`);
+    });
+
+    return () => {
+      unsubscribeOutput();
+      unsubscribeExit();
+    };
+  }, [ensureTerminalSession]);
 
   async function refreshTools() {
     setIsRefreshingTools(true);
@@ -169,6 +234,30 @@ export function useDesktopState() {
     }
   }
 
+  async function sendTerminalCommand(command: string): Promise<void> {
+    const normalizedCommand = command.trim();
+    if (!normalizedCommand) {
+      return;
+    }
+
+    const session = await ensureTerminalSession();
+    if (!session) {
+      return;
+    }
+
+    try {
+      await desktopClient.writeToTerminal(session.id, `${normalizedCommand}\r`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Falha ao enviar comando para o console.";
+      setErrorMessage(message);
+    }
+  }
+
+  function clearTerminalOutput(): void {
+    setTerminalOutput([]);
+  }
+
   const installedCount = useMemo(
     () => snapshot?.tools.filter((tool) => tool.detected).length ?? 0,
     [snapshot]
@@ -185,6 +274,9 @@ export function useDesktopState() {
     updatingWorkspaceId,
     actionMessage,
     errorMessage,
+    terminalSession,
+    terminalOutput,
+    isStartingTerminal,
     installedCount,
     refreshTools,
     launchTool,
@@ -192,5 +284,8 @@ export function useDesktopState() {
     checkForUpdates,
     createWorkspace,
     renameWorkspace,
+    ensureTerminalSession,
+    sendTerminalCommand,
+    clearTerminalOutput,
   };
 }

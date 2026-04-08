@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { SidebarNav } from "../components/SidebarNav/SidebarNav";
 import { OverviewTab } from "../features/overview/OverviewTab";
 import { AppsTab } from "../features/apps/AppsTab";
+import { ConsoleTab } from "../features/console/ConsoleTab";
 import { EventsTab } from "../features/events/EventsTab";
 import { LogsTab } from "../features/logs/LogsTab";
 import { WorkspacesTab } from "../features/workspaces/WorkspacesTab";
@@ -22,12 +23,18 @@ export default function App() {
     updatingWorkspaceId,
     actionMessage,
     errorMessage,
+    terminalSession,
+    terminalOutput,
+    isStartingTerminal,
     refreshTools,
     launchTool,
     defineToolExecutablePath,
     checkForUpdates,
     createWorkspace,
     renameWorkspace,
+    ensureTerminalSession,
+    sendTerminalCommand,
+    clearTerminalOutput,
   } = useDesktopState();
 
   const tabTitles: Record<NavigationTabId, string> = {
@@ -35,6 +42,7 @@ export default function App() {
     apps: "Aplicativos",
     workspaces: "Workspaces",
     events: "Eventos",
+    console: "Console",
     logs: "Logs",
   };
 
@@ -59,6 +67,11 @@ export default function App() {
         id: "events" as const,
         label: "Eventos",
         summary: "Stream persistido com filtros por origem e severidade.",
+      },
+      {
+        id: "console" as const,
+        label: "Console",
+        summary: "Terminal PowerShell integrado com streaming ao vivo.",
       },
       {
         id: "logs" as const,
@@ -89,6 +102,17 @@ export default function App() {
         );
       case "logs":
         return <LogsTab logs={snapshot.logs} />;
+      case "console":
+        return (
+          <ConsoleTab
+            terminalSession={terminalSession}
+            terminalOutput={terminalOutput}
+            isStartingTerminal={isStartingTerminal}
+            onInitializeTerminal={ensureTerminalSession}
+            onSendCommand={sendTerminalCommand}
+            onClearOutput={clearTerminalOutput}
+          />
+        );
       case "events":
         return <EventsTab events={snapshot.events} />;
       case "workspaces":
@@ -125,13 +149,19 @@ export default function App() {
     isCheckingUpdates,
     isCreatingWorkspace,
     isRefreshingTools,
+    isStartingTerminal,
     launchTool,
     launchingToolId,
     refreshTools,
     renameWorkspace,
+    ensureTerminalSession,
     savingToolId,
     snapshot,
+    terminalOutput,
+    terminalSession,
     updatingWorkspaceId,
+    sendTerminalCommand,
+    clearTerminalOutput,
   ]);
 
   return (
