@@ -1,6 +1,8 @@
+import { randomUUID } from "node:crypto";
 import { getDatabase } from "./database";
 import { toolCatalog } from "../../shared/toolCatalog";
 import type {
+  WorkspaceCreateInput,
   ToolId,
   WorkspaceAppAssignment,
   WorkspaceDefinition,
@@ -137,4 +139,63 @@ export function countWorkspaces(): number {
   const database = getDatabase();
   const row = database.prepare("SELECT COUNT(*) AS count FROM workspaces").get() as { count: number };
   return row.count;
+}
+
+export function createWorkspace(input: WorkspaceCreateInput): WorkspaceDefinition {
+  const database = getDatabase();
+  const timestamp = new Date().toISOString();
+  const normalizedName = input.name.trim();
+
+  if (!normalizedName) {
+    throw new Error("O nome do workspace nao pode ficar vazio.");
+  }
+
+  const workspaceId = `workspace-${randomUUID()}`;
+  const description = input.description?.trim() || "Workspace criado manualmente via IPC.";
+
+  database
+    .prepare(
+      `
+        INSERT INTO workspaces (id, name, description, layout_mode, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `
+    )
+    .run(workspaceId, normalizedName, description, "manual", timestamp, timestamp);
+
+  const insertAssignment = database.prepare(`
+    INSERT INTO workspace_apps (
+      workspace_id,
+      tool_id,
+      enabled,
+      launch_order,
+      window_slot,
+      created_at,
+      updated_at
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const transaction = database.transaction(() => {
+    toolCatalog.forEach((tool, index) => {
+      insertAssignment.run(workspaceId, tool.id, 0, index, "manual", timestamp, timestamp);
+    });
+  });
+
+  transaction();
+
+  return {
+    id: workspaceId,
+    name: normalizedName,
+    description,
+    layoutMode: "manual",
+    assignments: toolCatalog.map((tool, index) => ({
+      workspaceId,
+      toolId: tool.id,
+      enabled: false,
+      launchOrder: index,
+      windowSlot: "manual",
+    })),
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
 }

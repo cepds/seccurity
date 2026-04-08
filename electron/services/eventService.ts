@@ -83,8 +83,8 @@ export function recordStandardizedEvent(input: EventInput): number {
   const result = database
     .prepare(
       `
-        INSERT INTO standardized_events (timestamp, source, type, target, severity, data_json)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO events (timestamp, source, type, target, severity, data_json, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `
     )
     .run(
@@ -93,7 +93,8 @@ export function recordStandardizedEvent(input: EventInput): number {
       input.type,
       input.target,
       input.severity,
-      JSON.stringify(input.data)
+      JSON.stringify(input.data),
+      timestamp
     );
 
   return Number(result.lastInsertRowid);
@@ -105,7 +106,7 @@ export function getEvents(limit = 100): StandardizedEvent[] {
     .prepare(
       `
         SELECT id, timestamp, source, type, target, severity, data_json
-        FROM standardized_events
+        FROM events
         ORDER BY datetime(timestamp) DESC, id DESC
         LIMIT ?
       `
@@ -118,7 +119,7 @@ export function getEvents(limit = 100): StandardizedEvent[] {
 export function countEvents(): number {
   const database = getDatabase();
   const row = database
-    .prepare("SELECT COUNT(*) AS count FROM standardized_events")
+    .prepare("SELECT COUNT(*) AS count FROM events")
     .get() as { count: number };
 
   return row.count;

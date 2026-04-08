@@ -1,1 +1,1 @@
-export { getDatabase, getDatabasePath, initializeDatabase } from "../../backend/db";
+export { getDatabase, getDatabasePath, initDatabase, initializeDatabase } from "../../backend/db";

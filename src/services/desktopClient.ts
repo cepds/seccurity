@@ -3,9 +3,13 @@ import type {
   DesktopApi,
   DesktopBootstrap,
   DetectedTool,
+  ToolSaveInput,
   UpdateStatus,
+  WorkspaceCreateInput,
   WorkspaceDefinition,
 } from "../../shared/types";
+
+let previewWorkspaceCounter = 1;
 
 function buildPreviewTools(): DetectedTool[] {
   return toolCatalog.map((tool) => ({
@@ -122,9 +126,66 @@ function buildBrowserPreviewBootstrap(): DesktopBootstrap {
   };
 }
 
+let previewBootstrap = buildBrowserPreviewBootstrap();
+
 const browserPreviewApi: DesktopApi = {
-  bootstrap: async () => buildBrowserPreviewBootstrap(),
-  scanTools: async () => buildBrowserPreviewBootstrap().tools,
+  bootstrap: async () => previewBootstrap,
+  listTools: async () => previewBootstrap.tools,
+  saveTool: async (input: ToolSaveInput) => {
+    const toolIndex = previewBootstrap.tools.findIndex((item) => item.id === input.toolId);
+    if (toolIndex === -1) {
+      throw new Error(`Ferramenta desconhecida no preview: ${input.toolId}`);
+    }
+
+    const currentTool = previewBootstrap.tools[toolIndex];
+    const nextTool: DetectedTool = {
+      ...currentTool,
+      manualPath: input.executablePath,
+      installPath: input.executablePath,
+      launchable: Boolean(input.executablePath),
+      detected: Boolean(input.executablePath),
+      pathSource: input.executablePath ? "manual" : "missing",
+      lastCheckedAt: new Date().toISOString(),
+    };
+
+    previewBootstrap = {
+      ...previewBootstrap,
+      tools: previewBootstrap.tools.map((tool, index) => (index === toolIndex ? nextTool : tool)),
+    };
+
+    return {
+      ok: true,
+      tool: nextTool,
+      message: "Preview web atualizado localmente.",
+    };
+  },
+  listWorkspaces: async () => previewBootstrap.workspaces,
+  createWorkspace: async (input: WorkspaceCreateInput) => {
+    const workspaceId = `preview-workspace-${previewWorkspaceCounter++}`;
+    const workspace: WorkspaceDefinition = {
+      id: workspaceId,
+      name: input.name.trim() || "Workspace preview",
+      description: input.description?.trim() || "Workspace criado no preview web.",
+      layoutMode: "manual",
+      assignments: toolCatalog.map((tool, index) => ({
+        workspaceId,
+        toolId: tool.id,
+        enabled: false,
+        launchOrder: index,
+        windowSlot: "manual",
+      })),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    previewBootstrap = {
+      ...previewBootstrap,
+      workspaces: [workspace, ...previewBootstrap.workspaces],
+    };
+
+    return workspace;
+  },
+  scanTools: async () => previewBootstrap.tools,
   launchTool: async (toolId) => ({
     ok: false,
     toolId,
@@ -136,22 +197,31 @@ const browserPreviewApi: DesktopApi = {
       throw new Error(`Ferramenta desconhecida no preview: ${toolId}`);
     }
 
-    return {
+    const nextTool: DetectedTool = {
+      ...tool,
+      manualPath: executablePath,
+      installPath: executablePath,
+      launchable: Boolean(executablePath),
+      detected: Boolean(executablePath),
+      pathSource: executablePath ? "manual" : "missing",
+    };
+
+    const result = {
       ok: true,
-      tool: {
-        ...tool,
-        manualPath: executablePath,
-        installPath: executablePath,
-        launchable: Boolean(executablePath),
-        detected: Boolean(executablePath),
-        pathSource: executablePath ? "manual" : "missing",
-      },
+      tool: nextTool,
       message: "Preview web atualizado localmente.",
     };
+
+    await browserPreviewApi.saveTool({
+      toolId,
+      executablePath,
+    });
+
+    return result;
   },
-  getLogs: async () => buildBrowserPreviewBootstrap().logs,
-  getEvents: async () => buildBrowserPreviewBootstrap().events,
-  checkForUpdates: async () => buildBrowserPreviewBootstrap().overview.updateStatus,
+  getLogs: async () => previewBootstrap.logs,
+  getEvents: async () => previewBootstrap.events,
+  checkForUpdates: async () => previewBootstrap.overview.updateStatus,
   launchWorkspace: async (workspaceId) => ({
     ok: false,
     workspaceId,

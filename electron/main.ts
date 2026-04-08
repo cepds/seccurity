@@ -1,6 +1,6 @@
 import path from "node:path";
 import { app, BrowserWindow } from "electron";
-import { initializeDatabase } from "./services/database";
+import { initDatabase } from "./services/database";
 import { logEvent } from "./services/logger";
 import { syncProviderRegistry } from "./services/providerService";
 import { registerIpcHandlers } from "./services/ipc";
@@ -42,7 +42,7 @@ function createWindow(): BrowserWindow {
 
 async function bootstrap(): Promise<void> {
   app.setName("SECCURITY");
-  initializeDatabase(app.getPath("userData"));
+  initDatabase(app.getPath("userData"));
   syncProviderRegistry();
   syncToolRegistry();
   ensureDefaultWorkspace();

@@ -12,6 +12,7 @@ import {
 } from "./toolService";
 import {
   countWorkspaces,
+  createWorkspace,
   getWorkspaceById,
   listWorkspaces,
 } from "./workspaceService";
@@ -21,6 +22,8 @@ import type {
   DesktopBootstrap,
   OpenWorkspaceResult,
   ToolId,
+  ToolSaveInput,
+  WorkspaceCreateInput,
 } from "../../shared/types";
 
 function buildOverview(): AppOverview {
@@ -104,6 +107,23 @@ async function launchWorkspace(workspaceId: string): Promise<OpenWorkspaceResult
 }
 
 export function registerIpcHandlers(): void {
+  ipcMain.handle("tools:list", () => getCachedTools());
+
+  ipcMain.handle("tools:save", (_event, input: ToolSaveInput) =>
+    setManualToolExecutablePath(input.toolId, input.executablePath)
+  );
+
+  ipcMain.handle("workspaces:list", () => listWorkspaces());
+
+  ipcMain.handle("workspaces:create", (_event, input: WorkspaceCreateInput) => {
+    const workspace = createWorkspace(input);
+    logEvent("success", "workspace", "Workspace criado via IPC.", {
+      workspaceId: workspace.id,
+      name: workspace.name,
+    });
+    return workspace;
+  });
+
   ipcMain.handle("seccurity:bootstrap", () => {
     const cachedTools = getCachedTools();
     if (!cachedTools.some((tool) => tool.lastCheckedAt)) {
