@@ -3,6 +3,7 @@ import { SidebarNav } from "../components/SidebarNav/SidebarNav";
 import { OverviewTab } from "../features/overview/OverviewTab";
 import { AppsTab } from "../features/apps/AppsTab";
 import { LogsTab } from "../features/logs/LogsTab";
+import { WorkspacesTab } from "../features/workspaces/WorkspacesTab";
 import { useDesktopState } from "../hooks/useDesktopState";
 import styles from "./App.module.css";
 import type { NavigationTabId } from "../../shared/types";
@@ -16,12 +17,16 @@ export default function App() {
     isCheckingUpdates,
     launchingToolId,
     savingToolId,
+    isCreatingWorkspace,
+    updatingWorkspaceId,
     actionMessage,
     errorMessage,
     refreshTools,
     launchTool,
     defineToolExecutablePath,
     checkForUpdates,
+    createWorkspace,
+    renameWorkspace,
   } = useDesktopState();
 
   const sidebarItems = useMemo(
@@ -35,6 +40,11 @@ export default function App() {
         id: "apps" as const,
         label: "Apps",
         summary: "Deteccao local, caminho, versao e launcher.",
+      },
+      {
+        id: "workspaces" as const,
+        label: "Workspaces",
+        summary: "Colecoes, criacao e edicao de nomes.",
       },
       {
         id: "logs" as const,
@@ -65,6 +75,20 @@ export default function App() {
         );
       case "logs":
         return <LogsTab logs={snapshot.logs} />;
+      case "workspaces":
+        return (
+          <WorkspacesTab
+            workspaces={snapshot.workspaces}
+            onCreateWorkspace={async (name) => {
+              await createWorkspace(name);
+            }}
+            onRenameWorkspace={async (workspaceId, name) => {
+              await renameWorkspace(workspaceId, name);
+            }}
+            isCreatingWorkspace={isCreatingWorkspace}
+            updatingWorkspaceId={updatingWorkspaceId}
+          />
+        );
       case "overview":
       default:
         return (
@@ -80,14 +104,18 @@ export default function App() {
   }, [
     activeTab,
     checkForUpdates,
+    createWorkspace,
     defineToolExecutablePath,
     isCheckingUpdates,
+    isCreatingWorkspace,
     isRefreshingTools,
     launchTool,
     launchingToolId,
     refreshTools,
+    renameWorkspace,
     savingToolId,
     snapshot,
+    updatingWorkspaceId,
   ]);
 
   return (
@@ -112,6 +140,8 @@ export default function App() {
                   ? "Visao geral"
                   : activeTab === "apps"
                     ? "Aplicativos"
+                    : activeTab === "workspaces"
+                      ? "Workspaces"
                     : "Logs"}
               </h2>
             </div>
@@ -121,6 +151,9 @@ export default function App() {
                 <>
                   <span className={styles.statusPill}>
                     {snapshot.overview.installedToolCount} apps detectados
+                  </span>
+                  <span className={styles.statusPill}>
+                    {snapshot.overview.workspaceCount} workspaces
                   </span>
                   <span className={styles.statusPill}>{snapshot.overview.providerCount} providers</span>
                 </>

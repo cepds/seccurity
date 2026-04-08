@@ -15,6 +15,7 @@ import {
   createWorkspace,
   getWorkspaceById,
   listWorkspaces,
+  updateWorkspace,
 } from "./workspaceService";
 import { getMockUpdateStatus } from "./updateService";
 import type {
@@ -24,6 +25,7 @@ import type {
   ToolId,
   ToolSaveInput,
   WorkspaceCreateInput,
+  WorkspaceUpdateInput,
 } from "../../shared/types";
 
 function buildOverview(): AppOverview {
@@ -134,6 +136,15 @@ export function registerIpcHandlers(): void {
   ipcMain.handle("workspaces:create", (_event, input: WorkspaceCreateInput) => {
     const workspace = createWorkspace(input);
     logEvent("success", "workspace", "Workspace criado via IPC.", {
+      workspaceId: workspace.id,
+      name: workspace.name,
+    });
+    return workspace;
+  });
+
+  ipcMain.handle("workspaces:update", (_event, input: WorkspaceUpdateInput) => {
+    const workspace = updateWorkspace(input);
+    logEvent("info", "workspace", "Workspace atualizado via IPC.", {
       workspaceId: workspace.id,
       name: workspace.name,
     });

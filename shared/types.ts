@@ -1,4 +1,4 @@
-export type NavigationTabId = "overview" | "apps" | "logs";
+export type NavigationTabId = "overview" | "apps" | "workspaces" | "logs";
 
 export type ToolId =
   | "nmap"
@@ -182,6 +182,11 @@ export interface WorkspaceCreateInput {
   description?: string;
 }
 
+export interface WorkspaceUpdateInput {
+  workspaceId: string;
+  name: string;
+}
+
 export interface OpenWorkspaceResult {
   ok: boolean;
   workspaceId: string;
@@ -196,6 +201,7 @@ export interface DesktopApi {
   browseToolExecutablePath: (toolId: ToolId) => Promise<ToolBrowseResult>;
   listWorkspaces: () => Promise<WorkspaceDefinition[]>;
   createWorkspace: (input: WorkspaceCreateInput) => Promise<WorkspaceDefinition>;
+  updateWorkspace: (input: WorkspaceUpdateInput) => Promise<WorkspaceDefinition>;
   scanTools: () => Promise<DetectedTool[]>;
   launchTool: (toolId: ToolId) => Promise<LaunchToolResult>;
   setToolExecutablePath: (toolId: ToolId, executablePath: string | null) => Promise<SetToolExecutablePathResult>;

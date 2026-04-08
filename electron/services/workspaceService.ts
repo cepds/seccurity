@@ -3,6 +3,7 @@ import { getDatabase } from "./database";
 import { toolCatalog } from "../../shared/toolCatalog";
 import type {
   WorkspaceCreateInput,
+  WorkspaceUpdateInput,
   ToolId,
   WorkspaceAppAssignment,
   WorkspaceDefinition,
@@ -196,6 +197,37 @@ export function createWorkspace(input: WorkspaceCreateInput): WorkspaceDefinitio
       windowSlot: "manual",
     })),
     createdAt: timestamp,
+    updatedAt: timestamp,
+  };
+}
+
+export function updateWorkspace(input: WorkspaceUpdateInput): WorkspaceDefinition {
+  const database = getDatabase();
+  const normalizedName = input.name.trim();
+
+  if (!normalizedName) {
+    throw new Error("O nome do workspace nao pode ficar vazio.");
+  }
+
+  const workspace = getWorkspaceById(input.workspaceId);
+  if (!workspace) {
+    throw new Error(`Workspace nao encontrado: ${input.workspaceId}`);
+  }
+
+  const timestamp = new Date().toISOString();
+  database
+    .prepare(
+      `
+        UPDATE workspaces
+        SET name = ?, updated_at = ?
+        WHERE id = ?
+      `
+    )
+    .run(normalizedName, timestamp, input.workspaceId);
+
+  return {
+    ...workspace,
+    name: normalizedName,
     updatedAt: timestamp,
   };
 }

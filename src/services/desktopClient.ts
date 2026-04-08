@@ -8,6 +8,7 @@ import type {
   UpdateStatus,
   WorkspaceCreateInput,
   WorkspaceDefinition,
+  WorkspaceUpdateInput,
 } from "../../shared/types";
 
 let previewWorkspaceCounter = 1;
@@ -189,6 +190,33 @@ const browserPreviewApi: DesktopApi = {
     };
 
     return workspace;
+  },
+  updateWorkspace: async (input: WorkspaceUpdateInput) => {
+    const nextName = input.name.trim() || "Workspace preview";
+    let updatedWorkspace: WorkspaceDefinition | null = null;
+
+    previewBootstrap = {
+      ...previewBootstrap,
+      workspaces: previewBootstrap.workspaces.map((workspace) => {
+        if (workspace.id !== input.workspaceId) {
+          return workspace;
+        }
+
+        updatedWorkspace = {
+          ...workspace,
+          name: nextName,
+          updatedAt: new Date().toISOString(),
+        };
+
+        return updatedWorkspace;
+      }),
+    };
+
+    if (!updatedWorkspace) {
+      throw new Error(`Workspace desconhecido no preview: ${input.workspaceId}`);
+    }
+
+    return updatedWorkspace;
   },
   scanTools: async () => previewBootstrap.tools,
   launchTool: async (toolId) => ({

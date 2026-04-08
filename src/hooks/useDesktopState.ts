@@ -6,6 +6,7 @@ import type {
   LaunchToolResult,
   ToolId,
   UpdateStatus,
+  WorkspaceDefinition,
 } from "../../shared/types";
 
 export function useDesktopState() {
@@ -15,6 +16,8 @@ export function useDesktopState() {
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [launchingToolId, setLaunchingToolId] = useState<ToolId | null>(null);
   const [savingToolId, setSavingToolId] = useState<ToolId | null>(null);
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
+  const [updatingWorkspaceId, setUpdatingWorkspaceId] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -132,6 +135,40 @@ export function useDesktopState() {
     }
   }
 
+  async function createWorkspace(name: string): Promise<WorkspaceDefinition | null> {
+    setIsCreatingWorkspace(true);
+
+    try {
+      const workspace = await databaseClient.createWorkspace({ name });
+      setActionMessage(`Workspace ${workspace.name} criado.`);
+      await loadBootstrap(false);
+      return workspace;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha ao criar workspace.";
+      setErrorMessage(message);
+      return null;
+    } finally {
+      setIsCreatingWorkspace(false);
+    }
+  }
+
+  async function renameWorkspace(workspaceId: string, name: string): Promise<WorkspaceDefinition | null> {
+    setUpdatingWorkspaceId(workspaceId);
+
+    try {
+      const workspace = await databaseClient.updateWorkspace({ workspaceId, name });
+      setActionMessage(`Workspace ${workspace.name} atualizado.`);
+      await loadBootstrap(false);
+      return workspace;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha ao atualizar workspace.";
+      setErrorMessage(message);
+      return null;
+    } finally {
+      setUpdatingWorkspaceId(null);
+    }
+  }
+
   const installedCount = useMemo(
     () => snapshot?.tools.filter((tool) => tool.detected).length ?? 0,
     [snapshot]
@@ -144,6 +181,8 @@ export function useDesktopState() {
     isCheckingUpdates,
     launchingToolId,
     savingToolId,
+    isCreatingWorkspace,
+    updatingWorkspaceId,
     actionMessage,
     errorMessage,
     installedCount,
@@ -151,5 +190,7 @@ export function useDesktopState() {
     launchTool,
     defineToolExecutablePath,
     checkForUpdates,
+    createWorkspace,
+    renameWorkspace,
   };
 }

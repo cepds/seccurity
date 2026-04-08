@@ -1,5 +1,5 @@
 import { desktopClient } from "./desktopClient";
-import type { ToolSaveInput, WorkspaceCreateInput } from "../../shared/types";
+import type { ToolSaveInput, WorkspaceCreateInput, WorkspaceUpdateInput } from "../../shared/types";
 
 export const databaseClient = {
   listTools: () => desktopClient.listTools(),
@@ -8,4 +8,5 @@ export const databaseClient = {
     desktopClient.browseToolExecutablePath(toolId),
   listWorkspaces: () => desktopClient.listWorkspaces(),
   createWorkspace: (input: WorkspaceCreateInput) => desktopClient.createWorkspace(input),
+  updateWorkspace: (input: WorkspaceUpdateInput) => desktopClient.updateWorkspace(input),
 };

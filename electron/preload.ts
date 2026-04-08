@@ -1,5 +1,11 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { DesktopApi, ToolId, ToolSaveInput, WorkspaceCreateInput } from "../shared/types";
+import type {
+  DesktopApi,
+  ToolId,
+  ToolSaveInput,
+  WorkspaceCreateInput,
+  WorkspaceUpdateInput,
+} from "../shared/types";
 
 const desktopApi: DesktopApi = {
   bootstrap: () => ipcRenderer.invoke("seccurity:bootstrap"),
@@ -8,6 +14,7 @@ const desktopApi: DesktopApi = {
   browseToolExecutablePath: (toolId: ToolId) => ipcRenderer.invoke("tools:browse-executable", toolId),
   listWorkspaces: () => ipcRenderer.invoke("workspaces:list"),
   createWorkspace: (input: WorkspaceCreateInput) => ipcRenderer.invoke("workspaces:create", input),
+  updateWorkspace: (input: WorkspaceUpdateInput) => ipcRenderer.invoke("workspaces:update", input),
   scanTools: () => ipcRenderer.invoke("seccurity:scan-tools"),
   launchTool: (toolId: ToolId) => ipcRenderer.invoke("seccurity:launch-tool", toolId),
   setToolExecutablePath: (toolId: ToolId, executablePath: string | null) =>
