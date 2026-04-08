@@ -7,7 +7,7 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["www/**", "node_modules/**", "android/**", "ios/**", ".photo-import/**"],
+    ignores: ["dist/**", "dist-electron/**", "www/**", "node_modules/**", "android/**", "ios/**", ".photo-import/**"],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended, eslintConfigPrettier],

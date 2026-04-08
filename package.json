@@ -1,30 +1,28 @@
 {
   "name": "seccurity",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "SECCURITY desktop local para operacoes de seguranca no Windows.",
-  "main": "dist-electron/electron/main.js",
+  "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "vite",
-    "dev:renderer": "vite",
-    "watch:electron": "tsc -p electron/tsconfig.json --watch --preserveWatchOutput",
-    "open:desktop": "wait-on tcp:5173 dist-electron/electron/main.js && electron .",
-    "dev:desktop": "concurrently -k -n renderer,electron,desktop -c cyan,magenta,green \"npm:watch:electron\" \"npm:dev:renderer\" \"npm:open:desktop\"",
-    "build": "vite build",
+    "dev": "concurrently \"vite\" \"tsc -p tsconfig.electron.json --watch\" \"wait-on tcp:5173 dist-electron/main.js && electron .\"",
     "build:web": "vite build",
-    "build:renderer": "vite build",
-    "build:electron": "tsc -p electron/tsconfig.json",
-    "build:desktop": "npm run build:renderer && npm run build:electron",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build": "npm run build:web && npm run build:electron",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win",
+    "dev:desktop": "npm run dev",
+    "build:desktop": "npm run build",
     "start:desktop": "electron .",
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "typecheck:electron": "tsc -p electron/tsconfig.json --noEmit",
+    "typecheck:electron": "tsc -p tsconfig.electron.json --noEmit",
     "rebuild:native": "electron-rebuild -f -w better-sqlite3,node-pty",
     "photos:prepare": "node scripts/prepare-photos.mjs",
-    "cap:sync": "npm run build && npx cap sync",
-    "cap:add:android": "npm run build && npx cap add android",
-    "cap:add:ios": "npm run build && npx cap add ios",
+    "cap:sync": "npm run build:web && npx cap sync",
+    "cap:add:android": "npm run build:web && npx cap add android",
+    "cap:add:ios": "npm run build:web && npx cap add ios",
     "android:open": "npm run cap:sync && npx cap open android",
     "ios:open": "npm run cap:sync && npx cap open ios",
     "apk:debug": "npm run cap:sync && powershell -ExecutionPolicy Bypass -File scripts/build-apk.ps1 Debug",
@@ -45,6 +43,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "concurrently": "^9.2.1",
     "electron": "^41.2.0",
+    "electron-builder": "^25.1.8",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -65,5 +64,27 @@
   },
   "optionalDependencies": {
     "sharp": "^0.34.5"
+  },
+  "build": {
+    "appId": "com.seccurity.desktop",
+    "productName": "SECCURITY",
+    "directories": {
+      "output": "release"
+    },
+    "files": ["dist/**/*", "dist-electron/**/*", "package.json"],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend"
+      }
+    ],
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "artifactName": "${productName}-${version}-${target}.${ext}"
   }
 }

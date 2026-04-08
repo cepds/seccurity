@@ -1,16 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
+import { resolveBackendPath } from "../paths";
 
 let database: Database.Database | null = null;
 let databasePath: string | null = null;
 
-function getProjectRoot(): string {
-  return path.resolve(__dirname, "..", "..", "..");
-}
-
 function getSchemaPath(): string {
-  return path.join(getProjectRoot(), "backend", "db", "schema.sql");
+  return resolveBackendPath("db", "schema.sql");
 }
 
 export function readSchemaSql(): string {
@@ -127,13 +124,15 @@ function applySchema(instance: Database.Database): void {
   instance.pragma("user_version = 4");
 }
 
-export function initDatabase(databaseDirectory = path.join(process.cwd(), ".seccurity")): Database.Database {
+export function initDatabase(
+  databaseFilePath = path.join(process.cwd(), ".seccurity", "seccurity.db")
+): Database.Database {
   if (database) {
     return database;
   }
 
-  fs.mkdirSync(databaseDirectory, { recursive: true });
-  databasePath = path.join(databaseDirectory, "seccurity.sqlite");
+  fs.mkdirSync(path.dirname(databaseFilePath), { recursive: true });
+  databasePath = databaseFilePath;
 
   const instance = new Database(databasePath);
   instance.pragma("journal_mode = WAL");

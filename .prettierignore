@@ -1,6 +1,7 @@
 android
 ios
 node_modules
+dist
 www
 .photo-import
 package-lock.json

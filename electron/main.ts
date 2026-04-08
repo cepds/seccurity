@@ -1,4 +1,3 @@
-import path from "node:path";
 import { app, BrowserWindow } from "electron";
 import { initDatabase } from "./services/database";
 import { logEvent } from "./services/logger";
@@ -8,12 +7,15 @@ import { syncToolRegistry } from "./services/toolService";
 import { disposeTerminalSessions } from "./services/terminalService";
 import { ensureDefaultWorkspace } from "./services/workspaceService";
 
-const isDevelopment = !app.isPackaged;
-const projectRoot = path.join(__dirname, "..", "..");
-const rendererDistPath = path.join(projectRoot, "www");
-const preloadPath = path.join(__dirname, "preload.js");
+export interface MainProcessOptions {
+  databasePath: string;
+  devServerUrl?: string;
+  isDevelopment: boolean;
+  preloadPath: string;
+  rendererIndexPath: string;
+}
 
-function createWindow(): BrowserWindow {
+export function createWindow(options: MainProcessOptions): BrowserWindow {
   const mainWindow = new BrowserWindow({
     width: 1500,
     height: 980,
@@ -23,27 +25,26 @@ function createWindow(): BrowserWindow {
     autoHideMenuBar: true,
     title: "SECCURITY",
     webPreferences: {
-      preload: preloadPath,
+      preload: options.preloadPath,
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
     },
   });
 
-  const devServerUrl = process.env.VITE_DEV_SERVER_URL;
-  if (isDevelopment && devServerUrl) {
-    void mainWindow.loadURL(devServerUrl);
+  if (options.isDevelopment && options.devServerUrl) {
+    void mainWindow.loadURL(options.devServerUrl);
     mainWindow.webContents.openDevTools({ mode: "detach" });
   } else {
-    void mainWindow.loadFile(path.join(rendererDistPath, "index.html"));
+    void mainWindow.loadFile(options.rendererIndexPath);
   }
 
   return mainWindow;
 }
 
-async function bootstrap(): Promise<void> {
+export async function bootstrapMainProcess(options: MainProcessOptions): Promise<void> {
   app.setName("SECCURITY");
-  initDatabase(app.getPath("userData"));
+  initDatabase(options.databasePath);
   syncProviderRegistry();
   syncToolRegistry();
   ensureDefaultWorkspace();
@@ -52,23 +53,25 @@ async function bootstrap(): Promise<void> {
     userDataPath: app.getPath("userData"),
   });
 
-  createWindow();
+  createWindow(options);
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+      createWindow(options);
     }
   });
 }
 
-app.whenReady().then(() => {
-  void bootstrap();
-});
+export function registerMainProcess(options: MainProcessOptions): void {
+  app.whenReady().then(() => {
+    void bootstrapMainProcess(options);
+  });
 
-app.on("window-all-closed", () => {
-  disposeTerminalSessions();
+  app.on("window-all-closed", () => {
+    disposeTerminalSessions();
 
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
+    if (process.platform !== "darwin") {
+      app.quit();
+    }
+  });
+}
