@@ -13,7 +13,6 @@ export type ToolId =
   | "wireshark"
   | "owasp-zap"
   | "process-hacker"
-  | "forensix-studio"
   | "hashcat"
   | "john-the-ripper";
 
@@ -288,6 +287,7 @@ export interface TerminalExitEvent {
 export interface DesktopApi {
   bootstrap: () => Promise<DesktopBootstrap>;
   listTools: () => Promise<DetectedTool[]>;
+  getToolIcon: (executablePath: string | null) => Promise<string | null>;
   saveTool: (input: ToolSaveInput) => Promise<SetToolExecutablePathResult>;
   browseToolExecutablePath: (toolId: ToolId) => Promise<ToolBrowseResult>;
   listWorkspaces: () => Promise<WorkspaceDefinition[]>;

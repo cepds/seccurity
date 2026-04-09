@@ -17,6 +17,7 @@ import { terminalChannels } from "./services/ipcChannels";
 const desktopApi: DesktopApi = {
   bootstrap: () => ipcRenderer.invoke("seccurity:bootstrap"),
   listTools: () => ipcRenderer.invoke("tools:list"),
+  getToolIcon: (executablePath: string | null) => ipcRenderer.invoke("tools:get-icon", executablePath),
   saveTool: (input: ToolSaveInput) => ipcRenderer.invoke("tools:save", input),
   browseToolExecutablePath: (toolId: ToolId) => ipcRenderer.invoke("tools:browse-executable", toolId),
   listWorkspaces: () => ipcRenderer.invoke("workspaces:list"),

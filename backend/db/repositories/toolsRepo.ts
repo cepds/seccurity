@@ -1,5 +1,6 @@
 import type { DetectedTool, ToolId, ToolPathSource } from "../../../shared/types";
 import { getDatabase } from "../db";
+import { toolCatalog } from "../../../shared/toolCatalog";
 
 export interface ToolRow {
   tool_id: ToolId;
@@ -39,6 +40,7 @@ function mapRow(row: ToolRow): ToolRow {
 
 export function listToolRows(): ToolRow[] {
   const database = getDatabase();
+  const activeToolIds = new Set(toolCatalog.map((tool) => tool.id));
   const rows = database
     .prepare(
       `
@@ -63,7 +65,7 @@ export function listToolRows(): ToolRow[] {
     )
     .all() as ToolRow[];
 
-  return rows.map(mapRow);
+  return rows.map(mapRow).filter((row) => activeToolIds.has(row.tool_id));
 }
 
 export function getToolRowMap(): Map<ToolId, ToolRow> {
@@ -170,6 +172,14 @@ export function upsertTool(tool: DetectedTool): void {
 export function persistTools(tools: DetectedTool[]): void {
   const database = getDatabase();
   const transaction = database.transaction((entries: DetectedTool[]) => {
+    const activeToolIds = entries.map((entry) => entry.id);
+    if (activeToolIds.length > 0) {
+      const placeholders = activeToolIds.map(() => "?").join(", ");
+      database
+        .prepare(`DELETE FROM tools WHERE tool_id NOT IN (${placeholders})`)
+        .run(...activeToolIds);
+    }
+
     entries.forEach(upsertTool);
   });
 

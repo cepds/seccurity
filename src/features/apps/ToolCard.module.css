@@ -16,6 +16,39 @@
   align-items: start;
 }
 
+.identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.iconShell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid rgba(130, 150, 182, 0.18);
+  background: rgba(12, 18, 31, 0.9);
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.iconImage {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.iconFallback {
+  color: var(--color-text-soft);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 .title {
   margin: 0 0 6px;
   font-size: 1.05rem;

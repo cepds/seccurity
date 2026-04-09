@@ -6,6 +6,7 @@ import { listProviders } from "./providerService";
 import { listSessions } from "./sessionService";
 import {
   getCachedTools,
+  getToolIcon,
   scanInstalledTools,
   setManualToolExecutablePath,
   launchTool,
@@ -89,6 +90,7 @@ function buildBootstrap(): DesktopBootstrap {
 
 export function registerIpcHandlers(): void {
   ipcMain.handle("tools:list", () => getCachedTools());
+  ipcMain.handle("tools:get-icon", (_event, executablePath: string | null) => getToolIcon(executablePath));
 
   ipcMain.handle("tools:save", (_event, input: ToolSaveInput) =>
     setManualToolExecutablePath(input.toolId, input.executablePath)

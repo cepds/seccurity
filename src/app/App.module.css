@@ -1,7 +1,7 @@
 .shell {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: clip;
 }
 
 .chrome {
@@ -28,6 +28,7 @@
   display: grid;
   align-content: start;
   gap: 20px;
+  min-width: 0;
   padding: 30px 28px 28px;
 }
 

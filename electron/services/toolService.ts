@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { shell } from "electron";
+import { app, shell } from "electron";
 import { clearRegistryCache, findRegistryInstallPaths } from "../../backend/registry";
 import {
   getToolRowMap,
@@ -54,6 +54,61 @@ function unique<T>(items: T[]): T[] {
 
 function expandTemplate(template: string): string {
   return template.replace(/\{([^}]+)\}/g, (_, token: keyof typeof pathTokens) => pathTokens[token] ?? "");
+}
+
+function wildcardSegmentToRegex(segment: string): RegExp {
+  const escaped = segment.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+  return new RegExp(`^${escaped}$`, "i");
+}
+
+function expandWildcardPath(templatePath: string): string[] {
+  const normalized = path.normalize(templatePath);
+  if (!normalized.includes("*")) {
+    return [normalized];
+  }
+
+  const parsed = path.parse(normalized);
+  const root = parsed.root || path.sep;
+  const remainder = normalized.slice(root.length);
+  const segments = remainder.split(path.sep).filter(Boolean);
+
+  let currentRoots = [root];
+
+  for (const segment of segments) {
+    const hasWildcard = segment.includes("*");
+    const nextRoots: string[] = [];
+
+    for (const currentRoot of currentRoots) {
+      if (!hasWildcard) {
+        nextRoots.push(path.join(currentRoot, segment));
+        continue;
+      }
+
+      try {
+        const entries = fs.readdirSync(currentRoot, { withFileTypes: true });
+        const matcher = wildcardSegmentToRegex(segment);
+        for (const entry of entries) {
+          if (!entry.isDirectory() && segment !== segments.at(-1)) {
+            continue;
+          }
+
+          if (matcher.test(entry.name)) {
+            nextRoots.push(path.join(currentRoot, entry.name));
+          }
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    currentRoots = unique(nextRoots);
+
+    if (currentRoots.length === 0) {
+      break;
+    }
+  }
+
+  return currentRoots;
 }
 
 function findOnPath(executableNames: string[]): string[] {
@@ -191,7 +246,9 @@ function resolveAutomaticPath(definition: ToolDefinition): AutomaticDetectionRes
     };
   }
 
-  const commonPath = definition.commonPathTemplates.map(expandTemplate).find(fileExists);
+  const commonPath = definition.commonPathTemplates
+    .flatMap((template) => expandWildcardPath(expandTemplate(template)))
+    .find(fileExists);
   if (commonPath) {
     return {
       source: "common",
@@ -303,6 +360,19 @@ export function setManualToolExecutablePath(
     tool,
     message,
   };
+}
+
+export async function getToolIcon(executablePath: string | null): Promise<string | null> {
+  if (!executablePath || !fileExists(executablePath)) {
+    return null;
+  }
+
+  try {
+    const icon = await app.getFileIcon(executablePath, { size: "small" });
+    return icon.isEmpty() ? null : icon.toDataURL();
+  } catch {
+    return null;
+  }
 }
 
 export async function launchTool(
