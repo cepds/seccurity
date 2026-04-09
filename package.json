@@ -27,21 +27,9 @@
     "typecheck": "tsc --noEmit",
     "typecheck:electron": "tsc -p tsconfig.electron.json --noEmit",
     "rebuild:native": "electron-rebuild -f -w better-sqlite3",
-    "photos:prepare": "node scripts/prepare-photos.mjs",
-    "cap:sync": "npm run build:web && npx cap sync",
-    "cap:add:android": "npm run build:web && npx cap add android",
-    "cap:add:ios": "npm run build:web && npx cap add ios",
-    "android:open": "npm run cap:sync && npx cap open android",
-    "ios:open": "npm run cap:sync && npx cap open ios",
-    "apk:debug": "npm run cap:sync && powershell -ExecutionPolicy Bypass -File scripts/build-apk.ps1 Debug",
-    "apk:release": "npm run cap:sync && powershell -ExecutionPolicy Bypass -File scripts/build-apk.ps1 Release",
     "postinstall": "npm run rebuild:native"
   },
   "devDependencies": {
-    "@capacitor/android": "^8.2.0",
-    "@capacitor/cli": "^8.2.0",
-    "@capacitor/core": "^8.2.0",
-    "@capacitor/ios": "^8.2.0",
     "@electron/rebuild": "^4.0.3",
     "@eslint/js": "^9.39.4",
     "@types/better-sqlite3": "^7.6.13",
@@ -68,9 +56,6 @@
     "framer-motion": "^12.38.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
-  },
-  "optionalDependencies": {
-    "sharp": "^0.34.5"
   },
   "build": {
     "appId": "com.seccurity.desktop",

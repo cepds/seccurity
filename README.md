@@ -1,47 +1,54 @@
-# APP AMOR
+# SECCURITY
 
-APP AMOR em stack premium com React, Vite, TypeScript, Framer Motion e Capacitor, mantendo pipeline de APK.
+SECCURITY e uma shell desktop para operacoes locais de seguranca em Windows. O app combina uma interface React + Electron com persistencia em SQLite para organizar inventario de ferramentas, workspaces operacionais, sessoes, eventos, alertas e um console PowerShell integrado.
+
+## Stack
+
+- Electron + Vite + React + TypeScript
+- `better-sqlite3` para persistencia local
+- IPC entre renderer e main process para launchers, terminal e leitura do runtime
+- `electron-builder` para empacotamento Windows
 
 ## Estrutura
 
-- `src/app/`: bootstrap da aplicacao e navegacao por capitulos
-- `src/components/`: blocos visuais reutilizaveis
-- `src/sections/`: capitulos da experiencia
-- `src/data/content.ts`: hero, quiz, galeria, timeline, memorias, promessas e textos finais
-- `src/services/`: acesso isolado a storage, audio, countdown e browser APIs
-- `src/styles/`: tokens, globals, layout e componentes base
-- `public/assets/`: fotos finais tratadas por categoria (`hero`, `highlights`, `timeline`, `gallery`, `memories`)
-- `scripts/prepare-photos.mjs`: prepara as fotos do ZIP em WebP
-- `android/`: projeto Android do Capacitor
-- `ios/`: projeto iOS do Capacitor
-- `www/`: build web pronto para sync do Capacitor
+- `src/app/`: shell do renderer, navegacao lateral e bootstrap da UI
+- `src/features/`: telas de overview, apps, workspaces, sessions, alerts, events, console e logs
+- `src/hooks/`: estado do desktop e sincronizacao do renderer com a API local
+- `src/services/`: cliente IPC/browser preview usado pelo renderer
+- `electron/`: main process, IPC, terminal, scans, launchers e servicos de runtime
+- `backend/`: schema SQLite, paths e repositorios locais
+- `shared/`: contratos de tipos e catalogo de ferramentas
+- `build/`: assets de packaging
 
-## Comandos
+## Scripts
 
-- `npm run dev`: ambiente local com Vite
-- `npm run lint`: verificacao com ESLint
-- `npm run typecheck`: verificacao TypeScript strict
-- `npm run build`: gera a pasta `www`
-- `npm run photos:prepare`: converte e organiza as fotos em WebP
-- `npm run cap:sync`: build web + sync do Capacitor
-- `npm run android:open`: abre o projeto Android
-- `npm run ios:open`: abre o projeto iOS
-- `npm run apk:debug`: gera APK debug em `android/app/build/outputs/apk/debug/`
-- `npm run apk:release`: gera APK release em `android/app/build/outputs/apk/release/`
+- `npm run dev`: sobe o renderer Vite, compila o processo Electron e abre o app desktop
+- `npm run build`: gera `dist/` e `dist-electron/`
+- `npm run dist`: empacota a aplicacao com `electron-builder`
+- `npm run dist:win`: gera artefatos Windows
+- `npm run lint`: executa ESLint
+- `npm run typecheck`: executa o TypeScript no renderer
+- `npm run typecheck:electron`: executa o TypeScript do main process
+- `npm run rebuild:native`: recompila modulos nativos para a versao local do Electron
+- `npm run sign:local`: aplica assinatura local para builds Windows
 
 ## Fluxo recomendado
 
 1. `npm install`
-2. `npm run photos:prepare`
-3. `npm run lint`
-4. `npm run typecheck`
-5. `npm run build`
-6. `npm run cap:sync`
-7. `npm run apk:debug`
+2. `npm run lint`
+3. `npm run typecheck`
+4. `npm run build`
+5. `npm run dist:win`
+
+## Estado atual
+
+- A shell principal do SECCURITY esta em producao no renderer atual.
+- O bootstrap oferece modo `browser-preview` quando o preload do Electron nao esta disponivel.
+- O backend local persiste logs, eventos, sessoes, workspaces e alertas em SQLite.
+- O modulo de updates ainda usa resposta mockada.
 
 ## Observacoes
 
-- Execute tudo a partir de `apps/nossa-historia`.
-- O countdown atual considera a data alvo em `src/data/content.ts`.
-- O app valida memorias, datas e imagens antes de persistir no storage.
-- Como o projeto esta no OneDrive, builds Android ainda podem sofrer lock de arquivos. Se isso acontecer, limpe `android/app/build` e `android/build` antes de rodar de novo.
+- No PowerShell do Windows, se `npm` estiver bloqueado pela execution policy, use `npm.cmd`.
+- O banco local e criado em `app.getPath("userData")/seccurity.db`.
+- O repositorio ainda pode conter alguns artefatos historicos fora da shell principal; a aplicacao ativa descrita aqui e a desktop shell do SECCURITY.

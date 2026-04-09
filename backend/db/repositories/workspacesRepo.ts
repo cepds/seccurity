@@ -30,6 +30,7 @@ interface WorkspaceAssignmentRow {
 }
 
 const defaultWorkspaceId = "primary-workspace";
+const activeToolIds = new Set(toolCatalog.map((tool) => tool.id));
 
 function mapAssignmentRow(row: WorkspaceAssignmentRow): WorkspaceAppAssignment {
   return {
@@ -54,7 +55,7 @@ export function getAssignmentsForWorkspace(workspaceId: string): WorkspaceAppAss
     )
     .all(workspaceId) as WorkspaceAssignmentRow[];
 
-  return rows.map(mapAssignmentRow);
+  return rows.map(mapAssignmentRow).filter((assignment) => activeToolIds.has(assignment.toolId));
 }
 
 export function ensureDefaultWorkspace(): void {
@@ -98,6 +99,15 @@ export function ensureDefaultWorkspace(): void {
   `);
 
   const transaction = database.transaction(() => {
+    database
+      .prepare(
+        `
+          DELETE FROM workspace_apps
+          WHERE workspace_id = ? AND tool_id NOT IN (${toolCatalog.map(() => "?").join(", ")})
+        `
+      )
+      .run(defaultWorkspaceId, ...toolCatalog.map((tool) => tool.id));
+
     toolCatalog.forEach((tool, index) => {
       upsertAssignment.run(
         defaultWorkspaceId,

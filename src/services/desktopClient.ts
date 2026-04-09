@@ -224,6 +224,7 @@ let previewBootstrap = buildBrowserPreviewBootstrap();
 const browserPreviewApi: DesktopApi = {
   bootstrap: async () => previewBootstrap,
   listTools: async () => previewBootstrap.tools,
+  getToolIcon: async () => null,
   saveTool: async (input: ToolSaveInput) => {
     const toolIndex = previewBootstrap.tools.findIndex((item) => item.id === input.toolId);
     if (toolIndex === -1) {

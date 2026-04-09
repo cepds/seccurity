@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import {
   formatAbsoluteTimestamp,
   formatToolCategory,
   formatToolPathSource,
 } from "../../lib/format";
+import { desktopClient } from "../../services/desktopClient";
 import type { DetectedTool, ToolId } from "../../../shared/types";
 import styles from "./ToolCard.module.css";
 
@@ -21,14 +23,45 @@ export function ToolCard({
   isLaunching,
   isSavingPath,
 }: ToolCardProps) {
+  const [iconDataUrl, setIconDataUrl] = useState<string | null>(null);
   const hasManualOverride = Boolean(tool.manualPath);
+  const fallbackLabel = tool.name
+    .split(/\s+/)
+    .map((part) => part[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void desktopClient.getToolIcon(tool.installPath).then((nextIcon) => {
+      if (isMounted) {
+        setIconDataUrl(nextIcon);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [tool.installPath]);
 
   return (
     <article className={styles.card}>
       <header className={styles.header}>
-        <div>
+        <div className={styles.identity}>
+          <div className={styles.iconShell} aria-hidden="true">
+            {iconDataUrl ? (
+              <img src={iconDataUrl} alt="" className={styles.iconImage} />
+            ) : (
+              <span className={styles.iconFallback}>{fallbackLabel}</span>
+            )}
+          </div>
+
+          <div>
           <h3 className={styles.title}>{tool.name}</h3>
           <p className={styles.description}>{tool.description}</p>
+          </div>
         </div>
 
         <div className={styles.badges}>
